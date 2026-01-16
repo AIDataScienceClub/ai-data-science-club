@@ -47,7 +47,7 @@ export default function Home() {
     <>
       <Hero
         title="Learn AI. Build Solutions. Change Atlanta."
-        subtitle="We're a student-led nonprofit helping high schoolers learn and apply AI and data science to solve real problems in our community—responsibly."
+        subtitle="We're a student-led club helping high schoolers learn and apply AI and data science to solve real problems in our community—responsibly."
         primaryCTA={{ label: 'Join Our Team', href: '/get-involved#students', ariaLabel: 'Apply to join as a student member' }}
         secondaryCTA={{ label: 'Explore Projects', href: '/projects', ariaLabel: 'View our project library' }}
       />

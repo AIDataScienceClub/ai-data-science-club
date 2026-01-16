@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AI Data Science Club | Student-Led Nonprofit',
+  title: 'AI Data Science Club | Student-Led Club',
   description: 'We help high schoolers learn and apply AI and data science to solve local problems—responsibly.',
 }
 

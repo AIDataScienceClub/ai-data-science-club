@@ -1,6 +1,6 @@
 # Atlanta AI & Data Lab Website
 
-A professional, accessible website for a student-led nonprofit helping high schoolers learn and apply AI and data science to solve local problems—responsibly.
+A professional, accessible website for a student-led club helping high schoolers learn and apply AI and data science to solve local problems—responsibly.
 
 ## 🚀 Quick Start
 
