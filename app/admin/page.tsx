@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Sparkles, Upload, RefreshCw, Trash2, Calendar, Image as ImageIcon, FolderOpen, Edit2, X, Save, Check, FileText, Users, Target, BookOpen, Home, ChevronRight, Briefcase, Plus, Clock, MapPin, LogOut } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Sparkles, Upload, RefreshCw, Trash2, Calendar, Image as ImageIcon, FolderOpen, Edit2, X, Save, Check, FileText, Users, Target, BookOpen, Home, ChevronRight, Briefcase, Plus, Clock, MapPin, LogOut, GalleryHorizontalEnd } from 'lucide-react'
 import AIContentUploader from '@/components/AIContentUploader'
 import AdminLogin from '@/components/AdminLogin'
 
@@ -169,6 +169,8 @@ export default function AdminPage() {
   const [editingItem, setEditingItem] = useState<ContentItem | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
   
   // Page editing state
   const [adminSection, setAdminSection] = useState<AdminSection>('content')
@@ -550,6 +552,52 @@ export default function AdminPage() {
   const updateEditingItem = (field: keyof ContentItem, value: any) => {
     if (!editingItem) return
     setEditingItem({ ...editingItem, [field]: value })
+  }
+
+  // Gallery image upload handler
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0 || !editingItem) return
+
+    setIsUploadingGallery(true)
+    const newGalleryImages: string[] = [...(editingItem.gallery || [])]
+
+    for (const file of Array.from(files)) {
+      const formData = new FormData()
+      formData.append('image', file)
+      formData.append('category', 'events')
+
+      try {
+        const response = await fetch('/api/gallery-upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          if (result.imagePath) {
+            newGalleryImages.push(result.imagePath)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to upload gallery image:', error)
+      }
+    }
+
+    setEditingItem({ ...editingItem, gallery: newGalleryImages })
+    setIsUploadingGallery(false)
+    
+    // Reset input
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = ''
+    }
+  }
+
+  // Remove gallery image
+  const removeGalleryImage = (indexToRemove: number) => {
+    if (!editingItem) return
+    const newGallery = (editingItem.gallery || []).filter((_, i) => i !== indexToRemove)
+    setEditingItem({ ...editingItem, gallery: newGallery })
   }
 
   const updatePageField = (path: string[], value: any) => {
@@ -2064,6 +2112,74 @@ export default function AdminPage() {
                     Mark as Featured (highlighted on the page)
                   </label>
                 </div>
+
+                {/* Gallery Section */}
+                {editingItem.category === 'events' && (
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <GalleryHorizontalEnd className="w-4 h-4" />
+                        Event Gallery
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => galleryInputRef.current?.click()}
+                        disabled={isUploadingGallery}
+                        className="px-3 py-1.5 text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1 disabled:opacity-50"
+                      >
+                        {isUploadingGallery ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4" />
+                            Add Images
+                          </>
+                        )}
+                      </button>
+                      <input
+                        ref={galleryInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleGalleryUpload}
+                        className="hidden"
+                      />
+                    </div>
+                    
+                    {editingItem.gallery && editingItem.gallery.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-3">
+                        {editingItem.gallery.map((img, index) => (
+                          <div key={index} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100">
+                            <img
+                              src={img}
+                              alt={`Gallery image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() => removeGalleryImage(index)}
+                                className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                title="Remove image"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
+                        <GalleryHorizontalEnd className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">No gallery images yet</p>
+                        <p className="text-xs text-gray-400 mt-1">Click "Add Images" to upload photos from this event</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
