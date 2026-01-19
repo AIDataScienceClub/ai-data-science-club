@@ -1,11 +1,20 @@
-import { put, del, list } from '@vercel/blob'
+import { put, del, list, head } from '@vercel/blob'
 
 const DATA_PREFIX = 'data/'
 const IMAGES_PREFIX = 'images/'
 
 // Helper to check if we're on Vercel (production)
-export function isVercelEnvironment() {
-  return process.env.VERCEL === '1' || process.env.BLOB_READ_WRITE_TOKEN
+export function isVercelEnvironment(): boolean {
+  return process.env.VERCEL === '1' || !!process.env.BLOB_READ_WRITE_TOKEN
+}
+
+// Get the blob token
+function getToken(): string {
+  const token = process.env.BLOB_READ_WRITE_TOKEN
+  if (!token) {
+    throw new Error('BLOB_READ_WRITE_TOKEN is not set')
+  }
+  return token
 }
 
 // Upload image to Vercel Blob
@@ -19,6 +28,7 @@ export async function uploadImageToBlob(
   
   const blob = await put(pathname, file, {
     access: 'public',
+    token: getToken(),
   })
   
   return blob.url
@@ -27,7 +37,7 @@ export async function uploadImageToBlob(
 // Delete image from Vercel Blob
 export async function deleteImageFromBlob(url: string): Promise<void> {
   try {
-    await del(url)
+    await del(url, { token: getToken() })
   } catch (error) {
     console.error('Error deleting blob:', error)
   }
@@ -41,10 +51,23 @@ export async function saveDataToBlob(
   const pathname = `${DATA_PREFIX}${filename}`
   const jsonString = JSON.stringify(data, null, 2)
   
+  // First, try to delete existing file to avoid duplicates
+  try {
+    const { blobs } = await list({ 
+      prefix: pathname,
+      token: getToken() 
+    })
+    for (const blob of blobs) {
+      await del(blob.url, { token: getToken() })
+    }
+  } catch {
+    // Ignore errors when listing/deleting
+  }
+  
   const blob = await put(pathname, jsonString, {
     access: 'public',
     contentType: 'application/json',
-    addRandomSuffix: false,
+    token: getToken(),
   })
   
   return blob.url
@@ -53,7 +76,11 @@ export async function saveDataToBlob(
 // Load JSON data from Vercel Blob
 export async function loadDataFromBlob<T>(filename: string): Promise<T | null> {
   try {
-    const { blobs } = await list({ prefix: `${DATA_PREFIX}${filename}` })
+    const token = getToken()
+    const { blobs } = await list({ 
+      prefix: `${DATA_PREFIX}${filename}`,
+      token 
+    })
     
     if (blobs.length === 0) {
       return null
@@ -78,6 +105,6 @@ export async function loadDataFromBlob<T>(filename: string): Promise<T | null> {
 
 // List all blobs with a prefix
 export async function listBlobs(prefix: string) {
-  const { blobs } = await list({ prefix })
+  const { blobs } = await list({ prefix, token: getToken() })
   return blobs
 }
