@@ -311,6 +311,7 @@ export default function AdminPage() {
       const response = await fetch(`/api/content/${editingItem.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(editingItem)
       })
       
@@ -341,6 +342,7 @@ export default function AdminPage() {
         const response = await fetch('/api/projects', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(pageEditData)
         })
         
@@ -356,6 +358,7 @@ export default function AdminPage() {
         const response = await fetch('/api/programs', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(pageEditData)
         })
         
@@ -370,6 +373,7 @@ export default function AdminPage() {
         const response = await fetch('/api/pages', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             page: selectedPage,
             data: pageEditData
@@ -396,7 +400,8 @@ export default function AdminPage() {
     
     try {
       const response = await fetch(`/api/content/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       })
       
       if (response.ok) {
@@ -570,6 +575,7 @@ export default function AdminPage() {
       try {
         const response = await fetch('/api/gallery-upload', {
           method: 'POST',
+          credentials: 'include',
           body: formData
         })
 
@@ -1197,7 +1203,7 @@ export default function AdminPage() {
                                             formData.append('memberType', 'officers')
                                             formData.append('memberIndex', index.toString())
                                             try {
-                                              const res = await fetch('/api/team-image', { method: 'POST', body: formData })
+                                              const res = await fetch('/api/team-image', { method: 'POST', credentials: 'include', body: formData })
                                               const data = await res.json()
                                               if (data.imagePath) {
                                                 const newOfficers = [...pageEditData.team.officers]
