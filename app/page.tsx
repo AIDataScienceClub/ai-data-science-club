@@ -66,10 +66,10 @@ export default async function Home() {
         <div className="container-custom">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-6 text-neutral-charcoal">
-              "We help high schoolers learn and apply AI and data science to solve local problems—responsibly."
+              "{pageData?.mission?.quote || "We help high schoolers learn and apply AI and data science to solve local problems—responsibly."}"
             </h2>
             <p className="text-lg text-neutral-gray-700">
-              At AI Data Science Club, we believe every student deserves access to cutting-edge technology education—not just lectures, but hands-on projects that make a difference. From mapping food deserts to building accessibility tools, our members turn curiosity into community impact.
+              {pageData?.mission?.description || "At AI Data Science Club, we believe every student deserves access to cutting-edge technology education—not just lectures, but hands-on projects that make a difference. From mapping food deserts to building accessibility tools, our members turn curiosity into community impact."}
             </p>
           </div>
         </div>
@@ -227,16 +227,24 @@ export default async function Home() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <Testimonial
-              quote="I never thought I could build an app that helps real people. This club changed how I see my future."
-              author="Maya S."
-              role="10th Grade, Applied AI Track"
-            />
-            <Testimonial
-              quote="As a parent, I was nervous about AI. But seeing the ethics training and mentorship structure gave me confidence."
-              author="Patricia L."
-              role="Parent of Member"
-            />
+            {(pageData?.testimonials && pageData.testimonials.length > 0) ? (
+              pageData.testimonials.map((t: { quote: string; author: string; role: string }, i: number) => (
+                <Testimonial key={i} quote={t.quote} author={t.author} role={t.role} />
+              ))
+            ) : (
+              <>
+                <Testimonial
+                  quote="I never thought I could build an app that helps real people. This club changed how I see my future."
+                  author="Maya S."
+                  role="10th Grade, Applied AI Track"
+                />
+                <Testimonial
+                  quote="As a parent, I was nervous about AI. But seeing the ethics training and mentorship structure gave me confidence."
+                  author="Patricia L."
+                  role="Parent of Member"
+                />
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -246,21 +254,21 @@ export default async function Home() {
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Make an Impact?
+              {pageData?.callToAction?.title || "Ready to Make an Impact?"}
             </h2>
             <p className="text-lg mb-8 text-white/90">
-              Whether you're curious about AI or ready to lead a project, there's a place for you here.
+              {pageData?.callToAction?.description || "Whether you're curious about AI or ready to lead a project, there's a place for you here."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <CTA
-                label="Students: Apply Now"
-                href="/get-involved#students"
+                label={pageData?.callToAction?.primaryButton?.label || "Students: Apply Now"}
+                href={pageData?.callToAction?.primaryButton?.href || "/get-involved#students"}
                 variant="secondary"
                 size="large"
               />
               <CTA
-                label="Mentors: Share Your Expertise"
-                href="/get-involved#mentors"
+                label={pageData?.callToAction?.secondaryButton?.label || "Mentors: Share Your Expertise"}
+                href={pageData?.callToAction?.secondaryButton?.href || "/get-involved#mentors"}
                 variant="ghost"
                 size="large"
               />

@@ -611,6 +611,10 @@ export default function AdminPage() {
       const newData = JSON.parse(JSON.stringify(prev))
       let current = newData
       for (let i = 0; i < path.length - 1; i++) {
+        // Create nested object if it doesn't exist
+        if (!current[path[i]]) {
+          current[path[i]] = {}
+        }
         current = current[path[i]]
       }
       current[path[path.length - 1]] = value
@@ -1066,6 +1070,182 @@ export default function AdminPage() {
                                 />
                               </div>
                             ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Home Page Mission */}
+                    {selectedPage === 'home' && (
+                      <div className="space-y-4">
+                        <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold">3</span>
+                          Mission Statement
+                        </h3>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Quote</label>
+                            <input
+                              type="text"
+                              value={pageEditData.mission?.quote || ''}
+                              onChange={(e) => updatePageField(['mission', 'quote'], e.target.value)}
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                              placeholder="Mission quote displayed in bold"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea
+                              value={pageEditData.mission?.description || ''}
+                              onChange={(e) => updatePageField(['mission', 'description'], e.target.value)}
+                              rows={3}
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                              placeholder="Description text below the quote"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Home Page Testimonials */}
+                    {selectedPage === 'home' && (
+                      <div className="space-y-4">
+                        <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold">4</span>
+                          Testimonials
+                        </h3>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                          {(pageEditData.testimonials || []).map((testimonial: { quote: string; author: string; role: string }, index: number) => (
+                            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white space-y-3">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-500">Testimonial {index + 1}</span>
+                                <button
+                                  onClick={() => {
+                                    const newTestimonials = pageEditData.testimonials.filter((_: unknown, i: number) => i !== index)
+                                    updatePageField(['testimonials'], newTestimonials)
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-sm"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Quote</label>
+                                <textarea
+                                  value={testimonial.quote}
+                                  onChange={(e) => {
+                                    const newTestimonials = [...(pageEditData.testimonials || [])]
+                                    newTestimonials[index] = { ...testimonial, quote: e.target.value }
+                                    updatePageField(['testimonials'], newTestimonials)
+                                  }}
+                                  rows={2}
+                                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                                  <input
+                                    type="text"
+                                    value={testimonial.author}
+                                    onChange={(e) => {
+                                      const newTestimonials = [...(pageEditData.testimonials || [])]
+                                      newTestimonials[index] = { ...testimonial, author: e.target.value }
+                                      updatePageField(['testimonials'], newTestimonials)
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                  <input
+                                    type="text"
+                                    value={testimonial.role}
+                                    onChange={(e) => {
+                                      const newTestimonials = [...(pageEditData.testimonials || [])]
+                                      newTestimonials[index] = { ...testimonial, role: e.target.value }
+                                      updatePageField(['testimonials'], newTestimonials)
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          <button
+                            onClick={() => {
+                              const newTestimonials = [...(pageEditData.testimonials || []), { quote: '', author: '', role: '' }]
+                              updatePageField(['testimonials'], newTestimonials)
+                            }}
+                            className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary hover:text-primary transition-colors"
+                          >
+                            + Add Testimonial
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Home Page Call to Action */}
+                    {selectedPage === 'home' && (
+                      <div className="space-y-4">
+                        <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold">5</span>
+                          Call to Action
+                        </h3>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input
+                              type="text"
+                              value={pageEditData.callToAction?.title || ''}
+                              onChange={(e) => updatePageField(['callToAction', 'title'], e.target.value)}
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea
+                              value={pageEditData.callToAction?.description || ''}
+                              onChange={(e) => updatePageField(['callToAction', 'description'], e.target.value)}
+                              rows={2}
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700">Primary Button</label>
+                              <input
+                                type="text"
+                                value={pageEditData.callToAction?.primaryButton?.label || ''}
+                                onChange={(e) => updatePageField(['callToAction', 'primaryButton', 'label'], e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                                placeholder="Button Label"
+                              />
+                              <input
+                                type="text"
+                                value={pageEditData.callToAction?.primaryButton?.href || ''}
+                                onChange={(e) => updatePageField(['callToAction', 'primaryButton', 'href'], e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                                placeholder="Button Link"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-700">Secondary Button</label>
+                              <input
+                                type="text"
+                                value={pageEditData.callToAction?.secondaryButton?.label || ''}
+                                onChange={(e) => updatePageField(['callToAction', 'secondaryButton', 'label'], e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                                placeholder="Button Label"
+                              />
+                              <input
+                                type="text"
+                                value={pageEditData.callToAction?.secondaryButton?.href || ''}
+                                onChange={(e) => updatePageField(['callToAction', 'secondaryButton', 'href'], e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+                                placeholder="Button Link"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
