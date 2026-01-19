@@ -6,11 +6,46 @@ import { saveDataToBlob, loadDataFromBlob, isVercelEnvironment } from '@/lib/blo
 
 const DATA_FILENAME = 'pages.json'
 
+// Default page data structure
+const DEFAULT_PAGE_DATA: Record<string, unknown> = {
+  home: {
+    hero: { title: "High schoolers learning AI—building for good.", subtitle: "We teach data science and responsible AI through hands-on projects that solve real community problems." },
+    stats: [
+      { value: "147", label: "Students Trained" },
+      { value: "21", label: "Projects Shipped" },
+      { value: "12", label: "Community Partners" }
+    ]
+  },
+  about: {
+    hero: { title: "Who We Are", subtitle: "A student-led movement to make AI education accessible, impactful, and responsible." },
+    mission: {
+      title: "Our Mission",
+      quote: "We help high schoolers learn and apply AI and data science to solve local problems—responsibly.",
+      content: "Atlanta AI & Data Lab was founded in 2023 by three high school juniors frustrated by the lack of hands-on tech opportunities in their schools.",
+      values: [
+        { title: "Accessible", description: "No barriers—free programs, loaned equipment, beginner-friendly." },
+        { title: "Applied", description: "Learning by doing; projects with purpose." },
+        { title: "Accountable", description: "Ethics aren't an afterthought—they're embedded in every project." }
+      ]
+    },
+    team: { officers: [], advisors: [] }
+  },
+  impact: {
+    hero: { title: "Measuring What Matters", subtitle: "We hold ourselves accountable." },
+    metrics: []
+  },
+  programs: {
+    hero: { title: "Programs That Meet You Where You Are", subtitle: "Three pathways designed for beginners, builders, and future AI leaders." },
+    programs: [],
+    faqs: []
+  }
+}
+
 // Helper to read pages data
 async function readPagesData(): Promise<Record<string, unknown>> {
   if (isVercelEnvironment()) {
     const blobData = await loadDataFromBlob<Record<string, unknown>>(DATA_FILENAME)
-    if (blobData) return blobData
+    if (blobData && Object.keys(blobData).length > 0) return blobData
   }
   
   try {
@@ -18,7 +53,8 @@ async function readPagesData(): Promise<Record<string, unknown>> {
     const fileContent = await readFile(dataPath, 'utf-8')
     return JSON.parse(fileContent)
   } catch {
-    return {}
+    // Return default data if file doesn't exist
+    return { ...DEFAULT_PAGE_DATA }
   }
 }
 
@@ -63,8 +99,9 @@ export async function PUT(request: NextRequest) {
     
     const allData = await readPagesData()
     
+    // Initialize page with defaults if it doesn't exist
     if (!allData[page]) {
-      return NextResponse.json({ error: 'Page not found' }, { status: 404 })
+      allData[page] = DEFAULT_PAGE_DATA[page] || {}
     }
     
     if (section) {

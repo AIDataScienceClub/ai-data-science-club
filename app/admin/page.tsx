@@ -188,7 +188,7 @@ export default function AdminPage() {
   const fetchContent = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/upload-content')
+      const response = await fetch('/api/upload-content', { cache: 'no-store' })
       const data = await response.json()
       setContent(data)
       setEventsData(data.events || [])
@@ -202,7 +202,7 @@ export default function AdminPage() {
   const fetchPageData = async () => {
     setIsLoadingPages(true)
     try {
-      const response = await fetch('/api/pages')
+      const response = await fetch('/api/pages', { cache: 'no-store' })
       const data = await response.json()
       setPageData(data)
       if (selectedPage !== 'events' && selectedPage !== 'projects' && data[selectedPage]) {
@@ -217,7 +217,7 @@ export default function AdminPage() {
 
   const fetchProjectsData = async () => {
     try {
-      const response = await fetch('/api/projects')
+      const response = await fetch('/api/projects', { cache: 'no-store' })
       const data = await response.json()
       setProjectsPageData(data)
       if (selectedPage === 'projects') {
@@ -230,7 +230,7 @@ export default function AdminPage() {
 
   const fetchProgramsData = async () => {
     try {
-      const response = await fetch('/api/programs')
+      const response = await fetch('/api/programs', { cache: 'no-store' })
       const data = await response.json()
       setProgramsPageData(data)
       if (selectedPage === 'programs') {
