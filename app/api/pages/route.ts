@@ -2,8 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFile, writeFile } from 'fs/promises'
 import path from 'path'
 import { isAuthenticated, unauthorizedResponse } from '@/lib/auth'
+import { saveDataToBlob, loadDataFromBlob, isVercelEnvironment } from '@/lib/blob-storage'
 
-const dataPath = path.join(process.cwd(), 'data', 'pages.json')
+const DATA_FILENAME = 'pages.json'
+
+// Helper to read pages data
+async function readPagesData(): Promise<Record<string, unknown>> {
+  if (isVercelEnvironment()) {
+    const blobData = await loadDataFromBlob<Record<string, unknown>>(DATA_FILENAME)
+    if (blobData) return blobData
+  }
+  
+  try {
+    const dataPath = path.join(process.cwd(), 'data', 'pages.json')
+    const fileContent = await readFile(dataPath, 'utf-8')
+    return JSON.parse(fileContent)
+  } catch {
+    return {}
+  }
+}
+
+// Helper to write pages data
+async function writePagesData(data: Record<string, unknown>): Promise<void> {
+  if (isVercelEnvironment()) {
+    await saveDataToBlob(DATA_FILENAME, data)
+  } else {
+    const dataPath = path.join(process.cwd(), 'data', 'pages.json')
+    await writeFile(dataPath, JSON.stringify(data, null, 2))
+  }
+}
 
 // GET - Fetch all page content or specific page
 export async function GET(request: NextRequest) {
@@ -11,8 +38,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = searchParams.get('page')
     
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const data = JSON.parse(fileContent)
+    const data = await readPagesData()
     
     if (page && data[page]) {
       return NextResponse.json({ [page]: data[page] })
@@ -27,7 +53,6 @@ export async function GET(request: NextRequest) {
 
 // PUT - Update page content
 export async function PUT(request: NextRequest) {
-  // Check authentication
   if (!await isAuthenticated()) {
     return unauthorizedResponse()
   }
@@ -36,8 +61,7 @@ export async function PUT(request: NextRequest) {
     const updates = await request.json()
     const { page, section, data: newData } = updates
     
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const allData = JSON.parse(fileContent)
+    const allData = await readPagesData()
     
     if (!allData[page]) {
       return NextResponse.json({ error: 'Page not found' }, { status: 404 })
@@ -45,13 +69,13 @@ export async function PUT(request: NextRequest) {
     
     if (section) {
       // Update specific section
-      allData[page][section] = newData
+      (allData[page] as Record<string, unknown>)[section] = newData
     } else {
       // Update entire page
       allData[page] = newData
     }
     
-    await writeFile(dataPath, JSON.stringify(allData, null, 2))
+    await writePagesData(allData)
     
     return NextResponse.json({ success: true, data: allData[page] })
   } catch (error) {

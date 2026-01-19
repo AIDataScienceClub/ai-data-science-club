@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { isAuthenticated, unauthorizedResponse } from '@/lib/auth'
+import { saveDataToBlob, loadDataFromBlob, isVercelEnvironment } from '@/lib/blob-storage'
 
+const DATA_FILENAME = 'programs.json'
 const DATA_PATH = path.join(process.cwd(), 'data', 'programs.json')
 
 interface Track {
@@ -41,38 +43,49 @@ interface ProgramsData {
   callToAction: { title: string; description: string; buttonText: string; buttonLink: string }
 }
 
+const defaultData: ProgramsData = {
+  hero: {
+    title: 'Programs That Meet You Where You Are',
+    subtitle: 'Three pathways designed for beginners, builders, and future AI leaders.'
+  },
+  comingSoon: {
+    enabled: true,
+    message: 'Our programs are being designed with care—launching soon!',
+    launchDate: 'Spring 2026'
+  },
+  tracks: [],
+  programs: [],
+  faqs: [],
+  callToAction: {
+    title: 'Interested in Our Programs?',
+    description: 'Sign up to be notified when applications open.',
+    buttonText: 'Get Notified',
+    buttonLink: '/get-involved'
+  }
+}
+
 async function getProgramsData(): Promise<ProgramsData> {
+  if (isVercelEnvironment()) {
+    const blobData = await loadDataFromBlob<ProgramsData>(DATA_FILENAME)
+    if (blobData) return blobData
+  }
+  
   try {
     const fileContent = await readFile(DATA_PATH, 'utf-8')
     return JSON.parse(fileContent)
-  } catch (error) {
-    return {
-      hero: {
-        title: 'Programs That Meet You Where You Are',
-        subtitle: 'Three pathways designed for beginners, builders, and future AI leaders.'
-      },
-      comingSoon: {
-        enabled: true,
-        message: 'Our programs are being designed with care—launching soon!',
-        launchDate: 'Spring 2026'
-      },
-      tracks: [],
-      programs: [],
-      faqs: [],
-      callToAction: {
-        title: 'Interested in Our Programs?',
-        description: 'Sign up to be notified when applications open.',
-        buttonText: 'Get Notified',
-        buttonLink: '/get-involved'
-      }
-    }
+  } catch {
+    return defaultData
   }
 }
 
 async function saveProgramsData(data: ProgramsData): Promise<void> {
-  const dir = path.dirname(DATA_PATH)
-  await mkdir(dir, { recursive: true })
-  await writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  if (isVercelEnvironment()) {
+    await saveDataToBlob(DATA_FILENAME, data)
+  } else {
+    const dir = path.dirname(DATA_PATH)
+    await mkdir(dir, { recursive: true })
+    await writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  }
 }
 
 // GET: Retrieve all programs data

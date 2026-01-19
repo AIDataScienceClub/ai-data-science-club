@@ -3,6 +3,7 @@ import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
 import { isAuthenticated, unauthorizedResponse } from '@/lib/auth'
+import { uploadImageToBlob, isVercelEnvironment } from '@/lib/blob-storage'
 
 export async function POST(request: NextRequest) {
   // Check authentication
@@ -19,27 +20,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 })
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', category)
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
-    }
+    let imagePath: string
 
-    // Save image
-    const timestamp = Date.now()
-    const safeName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const filename = `${timestamp}-${safeName}`
-    const filepath = path.join(uploadsDir, filename)
-    
-    const bytes = await imageFile.arrayBuffer()
-    await writeFile(filepath, Buffer.from(bytes))
-    
-    const imagePath = `/uploads/${category}/${filename}`
+    if (isVercelEnvironment()) {
+      // Upload to Vercel Blob
+      imagePath = await uploadImageToBlob(imageFile, category)
+    } else {
+      // Save locally
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads', category)
+      if (!existsSync(uploadsDir)) {
+        await mkdir(uploadsDir, { recursive: true })
+      }
+
+      const timestamp = Date.now()
+      const safeName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+      const filename = `${timestamp}-${safeName}`
+      const filepath = path.join(uploadsDir, filename)
+      
+      const bytes = await imageFile.arrayBuffer()
+      await writeFile(filepath, Buffer.from(bytes))
+      
+      imagePath = `/uploads/${category}/${filename}`
+    }
 
     return NextResponse.json({
       success: true,
       imagePath,
-      filename
+      filename: imagePath.split('/').pop()
     })
 
   } catch (error) {

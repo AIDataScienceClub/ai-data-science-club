@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { isAuthenticated, unauthorizedResponse } from '@/lib/auth'
+import { saveDataToBlob, loadDataFromBlob, isVercelEnvironment } from '@/lib/blob-storage'
 
+const DATA_FILENAME = 'projects.json'
 const DATA_PATH = path.join(process.cwd(), 'data', 'projects.json')
 
 interface Project {
@@ -34,38 +36,48 @@ interface ProjectsData {
   callToAction: { title: string; description: string; buttonText: string; buttonLink: string }
 }
 
+const defaultData: ProjectsData = {
+  hero: {
+    title: 'Projects That Matter',
+    subtitle: 'Real problems. Real data. Real impact.'
+  },
+  comingSoon: {
+    enabled: true,
+    message: 'Our first projects are in development!',
+    launchDate: 'Spring 2026'
+  },
+  categories: [],
+  projects: [],
+  callToAction: {
+    title: 'Have a Project Idea?',
+    description: 'We welcome project suggestions from students and community members.',
+    buttonText: 'Submit an Idea',
+    buttonLink: '/get-involved'
+  }
+}
+
 async function getProjectsData(): Promise<ProjectsData> {
+  if (isVercelEnvironment()) {
+    const blobData = await loadDataFromBlob<ProjectsData>(DATA_FILENAME)
+    if (blobData) return blobData
+  }
+  
   try {
     const fileContent = await readFile(DATA_PATH, 'utf-8')
     return JSON.parse(fileContent)
-  } catch (error) {
-    // Return default structure if file doesn't exist
-    return {
-      hero: {
-        title: 'Projects That Matter',
-        subtitle: 'Real problems. Real data. Real impact.'
-      },
-      comingSoon: {
-        enabled: true,
-        message: 'Our first projects are in development!',
-        launchDate: 'Spring 2026'
-      },
-      categories: [],
-      projects: [],
-      callToAction: {
-        title: 'Have a Project Idea?',
-        description: 'We welcome project suggestions from students and community members.',
-        buttonText: 'Submit an Idea',
-        buttonLink: '/get-involved'
-      }
-    }
+  } catch {
+    return defaultData
   }
 }
 
 async function saveProjectsData(data: ProjectsData): Promise<void> {
-  const dir = path.dirname(DATA_PATH)
-  await mkdir(dir, { recursive: true })
-  await writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  if (isVercelEnvironment()) {
+    await saveDataToBlob(DATA_FILENAME, data)
+  } else {
+    const dir = path.dirname(DATA_PATH)
+    await mkdir(dir, { recursive: true })
+    await writeFile(DATA_PATH, JSON.stringify(data, null, 2))
+  }
 }
 
 // GET: Retrieve all projects data
@@ -89,7 +101,6 @@ export async function PUT(request: Request) {
     const updates = await request.json()
     const currentData = await getProjectsData()
     
-    // Merge updates with current data
     const newData = {
       ...currentData,
       ...updates,
