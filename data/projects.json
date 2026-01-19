@@ -1,0 +1,48 @@
+{
+  "hero": {
+    "title": "Projects That Matter",
+    "subtitle": "Real problems. Real data. Real impact. Explore what our students are building—and imagine what you could create next."
+  },
+  "comingSoon": {
+    "enabled": true,
+    "message": "Our first cohort of student projects is currently in development. Check back soon to see what we're building!",
+    "launchDate": "Spring 2026"
+  },
+  "categories": [
+    {
+      "id": "community",
+      "name": "Community Impact",
+      "description": "Tools and resources that help local communities thrive",
+      "icon": "users",
+      "color": "primary"
+    },
+    {
+      "id": "education",
+      "name": "Education & Learning",
+      "description": "Solutions that make learning more accessible and effective",
+      "icon": "book",
+      "color": "secondary"
+    },
+    {
+      "id": "environment",
+      "name": "Environment & Sustainability",
+      "description": "Data-driven approaches to environmental challenges",
+      "icon": "leaf",
+      "color": "green"
+    },
+    {
+      "id": "health",
+      "name": "Health & Wellness",
+      "description": "Projects promoting community health and wellbeing",
+      "icon": "heart",
+      "color": "red"
+    }
+  ],
+  "projects": [],
+  "callToAction": {
+    "title": "Have a Project Idea?",
+    "description": "We're always looking for meaningful problems to solve. If you know of a community need that could benefit from data science or AI, let us know!",
+    "buttonText": "Submit an Idea",
+    "buttonLink": "/get-involved#ideas"
+  }
+}

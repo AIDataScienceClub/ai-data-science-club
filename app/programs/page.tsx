@@ -1,178 +1,269 @@
 import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
-import Card from '@/components/Card'
-import { BookOpen, Wrench, BarChart } from 'lucide-react'
+import { BookOpen, Wrench, BarChart, Rocket, Clock, Users, GraduationCap, Lightbulb } from 'lucide-react'
+import { readFile } from 'fs/promises'
+import path from 'path'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Programs | Atlanta AI & Data Lab',
   description: 'Three pathways designed for beginners, builders, and future AI leaders. No prior experience required.',
 }
 
-export default function Programs() {
-  const programs = [
-    {
-      icon: <BookOpen className="w-12 h-12" aria-hidden="true" />,
-      title: 'AI Literacy',
-      summary: 'Short, interactive activities that demystify AI. Learn how algorithms make decisions, practice spotting bias, and discuss real-world implications.',
-      details: [
-        'Hands-on exercises with visual AI tools (no coding required to start)',
-        'Ethics discussions: privacy, consent, fairness',
-        'Critical thinking workshops',
-        'Guest speakers from tech, policy, and advocacy',
-      ],
-      commitment: '2 hours/week for 6 weeks',
-      bestFor: 'Students new to AI; curious about tech\'s role in society',
-      outcomes: 'Earn a digital badge; present one ethics case study',
-    },
-    {
-      icon: <Wrench className="w-12 h-12" aria-hidden="true" />,
-      title: 'Applied AI for Community',
-      summary: 'Hands-on project teams tackling real needs identified by local partners. Learn Python, data analysis, and deployment—while building something that matters.',
-      details: [
-        'Join a 10-week sprint team (4-6 students)',
-        'Partner with nonprofits, schools, or city departments',
-        'Build prototypes: maps, dashboards, recommendation tools',
-        'Public demo at Community Showcase',
-      ],
-      commitment: '5-7 hours/week for 10 weeks',
-      bestFor: 'Students ready to code (or eager to learn fast)',
-      outcomes: 'Portfolio project; technical mentorship; college/internship references',
-    },
-    {
-      icon: <BarChart className="w-12 h-12" aria-hidden="true" />,
-      title: 'Data Science for Civic Impact',
-      summary: 'Turn messy data into clear insights that drive community decisions. Learn surveys, data cleaning, visualization, and storytelling.',
-      details: [
-        'Design surveys and collect data (with proper consent)',
-        'Clean and analyze datasets (Excel, Google Sheets, Python)',
-        'Build interactive dashboards (Tableau, Datawrapper)',
-        'Write policy briefs and present to partners',
-      ],
-      commitment: '4-6 hours/week for 8 weeks',
-      bestFor: 'Students interested in research, journalism, policy, or public health',
-      outcomes: 'Published report; presentation to community board; data portfolio',
-    },
-  ]
+interface Track {
+  id: string
+  name: string
+  description: string
+  icon: string
+  duration: string
+  hoursPerWeek: string
+}
 
-  const faqs = [
-    {
-      question: 'Do I need coding experience?',
-      answer: 'No! AI Literacy requires zero coding. Applied AI and Data Science assume you\'re willing to learn - we provide resources and pair you with mentors.',
-    },
-    {
-      question: 'Can I do more than one program?',
-      answer: 'Absolutely. Many students start with AI Literacy, then move to a project track. You can also repeat programs with new projects.',
-    },
-    {
-      question: 'How do you pick project topics?',
-      answer: 'We partner with local nonprofits and city agencies to identify real needs. Students vote on which projects to tackle each cycle.',
-    },
-    {
-      question: 'What if I miss sessions?',
-      answer: 'Life happens. Let your team lead know. We record workshops and provide async resources. Consistent communication is key.',
-    },
-  ]
+interface Program {
+  id: string
+  title: string
+  summary: string
+  details: string[]
+  commitment: string
+  bestFor: string
+  outcomes: string
+  track: string
+  status: 'upcoming' | 'enrolling' | 'in-progress' | 'completed'
+  startDate?: string
+}
+
+interface FAQ {
+  question: string
+  answer: string
+}
+
+interface ProgramsData {
+  hero: { title: string; subtitle: string }
+  comingSoon: { enabled: boolean; message: string; launchDate: string }
+  tracks: Track[]
+  programs: Program[]
+  faqs: FAQ[]
+  callToAction: { title: string; description: string; buttonText: string; buttonLink: string }
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  book: BookOpen,
+  wrench: Wrench,
+  chart: BarChart,
+}
+
+async function getProgramsData(): Promise<ProgramsData | null> {
+  try {
+    const dataPath = path.join(process.cwd(), 'data', 'programs.json')
+    const fileContent = await readFile(dataPath, 'utf-8')
+    return JSON.parse(fileContent)
+  } catch (error) {
+    console.error('Failed to load programs data:', error)
+    return null
+  }
+}
+
+export const revalidate = 0
+
+export default async function Programs() {
+  const data = await getProgramsData()
+  
+  const hero = data?.hero || { title: 'Programs That Meet You Where You Are', subtitle: 'Three pathways for beginners, builders, and future AI leaders.' }
+  const comingSoon = data?.comingSoon || { enabled: true, message: 'Programs coming soon!', launchDate: 'Spring 2026' }
+  const tracks = data?.tracks || []
+  const programs = data?.programs || []
+  const faqs = data?.faqs || []
+  const cta = data?.callToAction || { title: 'Interested?', description: 'Sign up to be notified.', buttonText: 'Get Notified', buttonLink: '/get-involved' }
+
+  const activePrograms = programs.filter(p => p.status === 'enrolling' || p.status === 'in-progress')
 
   return (
     <>
       <Hero
-        title="Programs That Meet You Where You Are"
-        subtitle="Three pathways designed for beginners, builders, and future AI leaders. No prior experience required."
-        primaryCTA={{ label: 'Apply Now', href: '/get-involved#students' }}
+        title={hero.title}
+        subtitle={hero.subtitle}
+        primaryCTA={{ label: 'Get Notified', href: '/get-involved#students' }}
       />
 
-      {/* Programs */}
+      {/* Coming Soon Banner (if enabled and no active programs) */}
+      {comingSoon.enabled && activePrograms.length === 0 && (
+        <section className="py-12 bg-gradient-to-r from-primary to-primary-dark text-white">
+          <div className="container-custom">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full mb-6">
+                <Rocket className="w-5 h-5" />
+                <span className="font-medium">Launching {comingSoon.launchDate}</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                {comingSoon.message}
+              </h2>
+              <p className="text-white/80">
+                We're finalizing our curriculum and partnerships. Sign up to be the first to know when enrollment opens!
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Program Tracks */}
       <section className="section-py bg-white">
         <div className="container-custom">
-          <div className="space-y-16">
-            {programs.map((program, index) => (
-              <div key={index} className="max-w-4xl mx-auto">
-                <div className="flex items-start mb-6">
-                  <div className="text-primary mr-4 flex-shrink-0">
-                    {program.icon}
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold mb-4 text-neutral-charcoal">
-                      {program.title}
-                    </h2>
-                    <p className="text-lg text-neutral-gray-700 mb-6">
-                      {program.summary}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-neutral-gray-100 rounded-lg p-6 mb-6">
-                  <h3 className="font-bold text-lg mb-3 text-neutral-charcoal">What You'll Do:</h3>
-                  <ul className="space-y-2">
-                    {program.details.map((detail, i) => (
-                      <li key={i} className="flex items-start">
-                        <span className="text-primary mr-2 flex-shrink-0">•</span>
-                        <span className="text-neutral-gray-700">{detail}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white border-2 border-neutral-gray-200 rounded-lg p-4">
-                    <div className="font-bold text-sm text-primary mb-1">Time Commitment</div>
-                    <div className="text-neutral-gray-700">{program.commitment}</div>
-                  </div>
-                  <div className="bg-white border-2 border-neutral-gray-200 rounded-lg p-4">
-                    <div className="font-bold text-sm text-primary mb-1">Best For</div>
-                    <div className="text-neutral-gray-700">{program.bestFor}</div>
-                  </div>
-                  <div className="bg-white border-2 border-neutral-gray-200 rounded-lg p-4">
-                    <div className="font-bold text-sm text-primary mb-1">Outcomes</div>
-                    <div className="text-neutral-gray-700">{program.outcomes}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="section-py bg-neutral-gray-100">
-        <div className="container-custom">
           <SectionHeader
-            title="Frequently Asked Questions"
-            description="Have questions? We've got answers."
+            title="Three Learning Pathways"
+            description="Each track is designed for different experience levels and interests. All lead to real skills and portfolio pieces."
             align="center"
           />
 
-          <div className="max-w-3xl mx-auto space-y-6">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 shadow-card">
-                <h3 className="font-bold text-lg mb-3 text-neutral-charcoal">
-                  {faq.question}
-                </h3>
-                <p className="text-neutral-gray-700">
-                  {faq.answer}
-                </p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+            {tracks.map((track) => {
+              const Icon = iconMap[track.icon] || BookOpen
+              return (
+                <div 
+                  key={track.id} 
+                  className="bg-neutral-gray-100 rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
+                >
+                  <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-xl text-neutral-charcoal mb-2">{track.name}</h3>
+                  <p className="text-neutral-gray-600 mb-4">{track.description}</p>
+                  <div className="flex justify-center gap-4 text-sm text-neutral-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {track.duration}
+                    </span>
+                    <span>{track.hoursPerWeek}</span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Active Programs (if any) */}
+      {activePrograms.length > 0 && (
+        <section className="section-py bg-neutral-gray-100">
+          <div className="container-custom">
+            <SectionHeader
+              title="Current Programs"
+              description="Enroll now or view ongoing cohorts"
+              align="left"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+              {activePrograms.map((program) => (
+                <div key={program.id} className="bg-white rounded-xl p-6 shadow-card">
+                  <div className="flex items-start justify-between mb-4">
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                      program.status === 'enrolling' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {program.status === 'enrolling' ? 'Now Enrolling' : 'In Progress'}
+                    </span>
+                    {program.startDate && (
+                      <span className="text-sm text-neutral-gray-500">Starts {program.startDate}</span>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-lg text-neutral-charcoal mb-2">{program.title}</h3>
+                  <p className="text-neutral-gray-600 mb-4">{program.summary}</p>
+                  <div className="text-sm text-neutral-gray-500 mb-4">
+                    <strong>Commitment:</strong> {program.commitment}
+                  </div>
+                  {program.status === 'enrolling' && (
+                    <Link href="/get-involved#students" className="btn btn-primary w-full">
+                      Apply Now
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* What to Expect (when no programs yet) */}
+      {programs.length === 0 && (
+        <section className="section-py bg-neutral-gray-100">
+          <div className="container-custom">
+            <div className="max-w-4xl mx-auto">
+              <SectionHeader
+                title="What to Expect"
+                description="Here's what our programs will offer"
+                align="center"
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div className="bg-white rounded-xl p-6 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-neutral-charcoal mb-2">Small Cohorts</h3>
+                  <p className="text-sm text-neutral-gray-600">12-15 students per cohort for personalized attention and collaboration</p>
+                </div>
+                <div className="bg-white rounded-xl p-6 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-secondary/10 flex items-center justify-center mb-4">
+                    <Lightbulb className="w-6 h-6 text-secondary" />
+                  </div>
+                  <h3 className="font-bold text-neutral-charcoal mb-2">Hands-On Learning</h3>
+                  <p className="text-sm text-neutral-gray-600">Real projects, real data, real impact—not just lectures</p>
+                </div>
+                <div className="bg-white rounded-xl p-6 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+                    <GraduationCap className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="font-bold text-neutral-charcoal mb-2">Portfolio Outcomes</h3>
+                  <p className="text-sm text-neutral-gray-600">Every student leaves with work to show colleges and employers</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      {faqs.length > 0 && (
+        <section className="section-py bg-white">
+          <div className="container-custom">
+            <SectionHeader
+              title="Frequently Asked Questions"
+              description="Have questions? We've got answers."
+              align="center"
+            />
+
+            <div className="max-w-3xl mx-auto space-y-6 mt-8">
+              {faqs.map((faq: FAQ, index: number) => (
+                <div key={index} className="bg-neutral-gray-100 rounded-lg p-6">
+                  <h3 className="font-bold text-lg mb-3 text-neutral-charcoal">
+                    {faq.question}
+                  </h3>
+                  <p className="text-neutral-gray-700">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Call to Action */}
       <section className="section-py bg-primary text-white">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">Ready to Dive In?</h2>
+            <h2 className="text-3xl font-bold mb-4">{cta.title}</h2>
             <p className="text-lg mb-8 text-white/90">
-              Apply as a student or reach out with questions.
+              {cta.description}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/get-involved#students" className="btn btn-secondary btn-large">
-                Apply as a Student
-              </a>
-              <a href="/about#contact" className="btn btn-ghost btn-large text-white border-white hover:bg-white hover:text-primary">
-                Questions? Contact Us
-              </a>
+              <Link href="/get-involved#students" className="btn btn-secondary btn-large">
+                Sign Up for Updates
+              </Link>
+              <Link href={cta.buttonLink} className="btn bg-white/20 hover:bg-white/30 text-white btn-large">
+                {cta.buttonText}
+              </Link>
             </div>
           </div>
         </div>

@@ -2,14 +2,39 @@ import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
 import Testimonial from '@/components/Testimonial'
+import { readFile } from 'fs/promises'
+import path from 'path'
 
 export const metadata: Metadata = {
   title: 'Impact | Atlanta AI & Data Lab',
   description: 'Measuring what matters: access, learning, and long-term pathways for our students.',
 }
 
-export default function Impact() {
-  const metrics2026 = [
+interface Metric {
+  metric: string
+  value: string
+  change: string
+  description: string
+}
+
+async function getPageData() {
+  try {
+    const dataPath = path.join(process.cwd(), 'data', 'pages.json')
+    const fileContent = await readFile(dataPath, 'utf-8')
+    const data = JSON.parse(fileContent)
+    return data.impact || null
+  } catch (error) {
+    console.error('Failed to load page data:', error)
+    return null
+  }
+}
+
+export const revalidate = 0
+
+export default async function Impact() {
+  const pageData = await getPageData()
+  
+  const metrics2026: Metric[] = pageData?.metrics || [
     { metric: 'Students Served', value: '147', change: '+32%', description: 'Active members this year' },
     { metric: 'Title I Schools', value: '68%', change: '+12%', description: 'Students from underserved schools' },
     { metric: 'Projects Completed', value: '21', change: '+40%', description: 'Community-facing projects' },
@@ -21,8 +46,8 @@ export default function Impact() {
   return (
     <>
       <Hero
-        title="Measuring What Matters"
-        subtitle="We hold ourselves accountable. Here's how we track access, learning, and long-term pathways—and what we've achieved so far."
+        title={pageData?.hero?.title || "Measuring What Matters"}
+        subtitle={pageData?.hero?.subtitle || "We hold ourselves accountable. Here's how we track access, learning, and long-term pathways—and what we've achieved so far."}
         primaryCTA={{ label: 'View Annual Report', href: '/files/annual-report-2026.pdf' }}
       />
 

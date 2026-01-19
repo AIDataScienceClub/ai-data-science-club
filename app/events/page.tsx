@@ -1,62 +1,79 @@
 import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
-import { Calendar } from 'lucide-react'
+import { Calendar, Sparkles } from 'lucide-react'
+import { readFile } from 'fs/promises'
+import path from 'path'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Events | Atlanta AI & Data Lab',
   description: 'Join us for workshops, sprints, showcases—spaces to learn, build, and celebrate.',
 }
 
-export default function Events() {
-  const upcomingEvents = [
-    {
-      date: 'January 18, 2026',
-      time: '10:00 AM – 12:00 PM',
-      title: 'AI Ethics Workshop: Spotting Bias in Algorithms',
-      location: 'Atlanta Central Library, Meeting Room 3A',
-      audience: 'Students (all levels), parents, educators',
-      description: 'Hands-on exercises with real datasets; group discussions on fairness and accountability.',
-      rsvpLink: '/rsvp/ethics-jan',
-    },
-    {
-      date: 'February 1, 2026',
-      time: '1:00 PM – 4:00 PM',
-      title: 'Spring Sprint Kickoff',
-      location: 'Georgia Tech, Klaus Advanced Computing Building',
-      audience: 'Returning members + new applicants (must apply by Jan 25)',
-      description: 'Meet your project team, hear from community partners, set 10-week goals.',
-      rsvpLink: '/get-involved#students',
-    },
-    {
-      date: 'February 22, 2026',
-      time: '11:00 AM – 1:00 PM',
-      title: 'Data Visualization Workshop (Beginners Welcome)',
-      location: 'Virtual (Zoom link sent upon RSVP)',
-      audience: 'Students curious about dashboards, charts, storytelling with data',
-      description: 'Learn Tableau basics; build your first interactive chart; portfolio tips.',
-      rsvpLink: '/rsvp/dataviz-feb',
-    },
-    {
-      date: 'March 8, 2026',
-      time: '2:00 PM – 4:00 PM',
-      title: 'Parent & Educator Open House',
-      location: 'Atlanta AI & Data Lab HQ (address in confirmation email)',
-      audience: 'Parents, teachers, guidance counselors',
-      description: 'Tour our space, meet advisors, see projects in progress, ask anything.',
-      rsvpLink: '/rsvp/openhouse-mar',
-    },
-    {
-      date: 'March 15, 2026',
-      time: '4:00 PM – 7:00 PM',
-      title: 'Community Showcase: Spring Demo Day',
-      location: 'Ponce City Market, Central Food Hall (public event)',
-      audience: 'Everyone—students, families, partners, neighbors, press',
-      description: 'Live demos of all spring projects; Q&A with teams; snacks; awards ceremony.',
-      rsvpLink: '/rsvp/showcase-mar',
-      featured: true,
-    },
-  ]
+interface EventItem {
+  id: string
+  date: string
+  time?: string
+  title: string
+  location?: string
+  audience?: string
+  description: string
+  image?: string | null
+  gallery?: string[]
+  tags?: string[]
+  featured?: boolean
+  aiGenerated?: boolean
+  rsvpLink?: string
+}
+
+interface GalleryItem {
+  id: string
+  title: string
+  image: string
+  relatedEvent?: string
+  aiGenerated?: boolean
+}
+
+async function getEvents(): Promise<{ events: EventItem[], gallery: GalleryItem[] }> {
+  try {
+    const dataPath = path.join(process.cwd(), 'data', 'events.json')
+    const fileContent = await readFile(dataPath, 'utf-8')
+    const data = JSON.parse(fileContent)
+    return { events: data.events || [], gallery: data.gallery || [] }
+  } catch (error) {
+    console.error('Failed to load events:', error)
+    return { events: [], gallery: [] }
+  }
+}
+
+export const revalidate = 0 // Always fetch fresh data
+
+export default async function Events() {
+  const { events, gallery } = await getEvents()
+  
+  // Sort by date, featured first
+  const sortedEvents = events.sort((a, b) => {
+    if (a.featured && !b.featured) return -1
+    if (!a.featured && b.featured) return 1
+    return new Date(a.date).getTime() - new Date(b.date).getTime()
+  })
+  
+  // Helper to get gallery images for an event (combines both inline gallery and related gallery items)
+  const getEventGallery = (event: EventItem) => {
+    // Get gallery items from the separate gallery array
+    const relatedGallery = gallery.filter(g => g.relatedEvent === event.id)
+    
+    // Get inline gallery paths from the event itself
+    const inlineGallery = (event.gallery || []).map((path, index) => ({
+      id: `${event.id}-gallery-${index}`,
+      title: `${event.title} Photo ${index + 1}`,
+      image: path,
+      aiGenerated: event.aiGenerated
+    }))
+    
+    return [...inlineGallery, ...relatedGallery]
+  }
 
   return (
     <>
@@ -76,45 +93,131 @@ export default function Events() {
           />
 
           <div className="max-w-4xl mx-auto space-y-6">
-            {upcomingEvents.map((event, index) => (
-              <div
-                key={index}
-                className={`rounded-lg p-6 shadow-card ${
-                  event.featured ? 'bg-primary text-white' : 'bg-white'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center mb-2">
-                      <Calendar className="w-5 h-5 mr-2" aria-hidden="true" />
-                      <span className="font-bold">
-                        {event.date} | {event.time}
-                      </span>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2">{event.title}</h3>
-                    <p className={`text-sm mb-3 ${event.featured ? 'text-white/80' : 'text-neutral-gray-600'}`}>
-                      <strong>Location:</strong> {event.location}
-                    </p>
-                    <p className={`text-sm mb-3 ${event.featured ? 'text-white/80' : 'text-neutral-gray-600'}`}>
-                      <strong>Who Should Attend:</strong> {event.audience}
-                    </p>
-                    <p className={event.featured ? 'text-white/90' : 'text-neutral-gray-700'}>
-                      {event.description}
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href={event.rsvpLink}
-                  className={`btn ${
-                    event.featured
-                      ? 'btn-secondary'
-                      : 'btn-primary'
+            {sortedEvents.length === 0 ? (
+              <div className="text-center py-12 text-neutral-gray-600">
+                <p>No events scheduled yet. Check back soon!</p>
+              </div>
+            ) : (
+              sortedEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className={`rounded-lg overflow-hidden shadow-card ${
+                    event.featured ? 'bg-primary text-white' : 'bg-white'
                   }`}
                 >
-                  RSVP (Free)
-                </a>
-              </div>
-            ))}
+                  {/* Event Image */}
+                  {event.image && (
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src={event.image}
+                        alt={event.title}
+                        fill
+                        className="object-cover"
+                      />
+                      {event.aiGenerated && (
+                        <span className="absolute top-3 right-3 px-2 py-1 bg-primary text-white text-xs rounded-full flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          AI Added
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center mb-2 flex-wrap gap-2">
+                          <div className="flex items-center">
+                            <Calendar className="w-5 h-5 mr-2" aria-hidden="true" />
+                            <span className="font-bold">
+                              {event.date}{event.time ? ` | ${event.time}` : ''}
+                            </span>
+                          </div>
+                          {event.aiGenerated && !event.image && (
+                            <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-full flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" />
+                              AI Added
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">{event.title}</h3>
+                        {event.location && (
+                          <p className={`text-sm mb-3 ${event.featured ? 'text-white/80' : 'text-neutral-gray-600'}`}>
+                            <strong>Location:</strong> {event.location}
+                          </p>
+                        )}
+                        {event.audience && (
+                          <p className={`text-sm mb-3 ${event.featured ? 'text-white/80' : 'text-neutral-gray-600'}`}>
+                            <strong>Who Should Attend:</strong> {event.audience}
+                          </p>
+                        )}
+                        <p className={event.featured ? 'text-white/90' : 'text-neutral-gray-700'}>
+                          {event.description}
+                        </p>
+                        
+                        {/* Tags */}
+                        {event.tags && event.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-4">
+                            {event.tags.map((tag, i) => (
+                              <span 
+                                key={i} 
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  event.featured 
+                                    ? 'bg-white/20 text-white' 
+                                    : 'bg-primary/10 text-primary'
+                                }`}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Event Gallery */}
+                        {(() => {
+                          const eventGallery = getEventGallery(event);
+                          if (eventGallery.length === 0) return null;
+                          return (
+                            <div className="mt-6 pt-4 border-t border-neutral-gray-200">
+                              <h4 className={`text-sm font-semibold mb-3 ${event.featured ? 'text-white' : 'text-neutral-charcoal'}`}>
+                                📸 Event Photos ({eventGallery.length})
+                              </h4>
+                              <div className="grid grid-cols-3 gap-2">
+                                {eventGallery.map((photo) => (
+                                  <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden group">
+                                    <Image
+                                      src={photo.image}
+                                      alt={photo.title}
+                                      fill
+                                      className="object-cover transition-transform group-hover:scale-105"
+                                    />
+                                    {photo.aiGenerated && (
+                                      <span className="absolute top-1 right-1 p-1 bg-primary text-white rounded-full">
+                                        <Sparkles className="w-2 h-2" />
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                    <a
+                      href={event.rsvpLink || '/get-involved'}
+                      className={`btn ${
+                        event.featured
+                          ? 'btn-secondary'
+                          : 'btn-primary'
+                      }`}
+                    >
+                      RSVP (Free)
+                    </a>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

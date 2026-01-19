@@ -1,0 +1,62 @@
+{
+  "hero": {
+    "title": "Programs That Meet You Where You Are",
+    "subtitle": "Three pathways designed for beginners, builders, and future AI leaders. No prior experience required."
+  },
+  "comingSoon": {
+    "enabled": true,
+    "message": "Our programs are being designed with care—launching soon!",
+    "launchDate": "Spring 2026"
+  },
+  "tracks": [
+    {
+      "id": "ai-literacy",
+      "name": "AI Literacy",
+      "description": "Short, interactive activities that demystify AI. Learn how algorithms work and discuss real-world implications.",
+      "icon": "book",
+      "duration": "6 weeks",
+      "hoursPerWeek": "2 hours/week"
+    },
+    {
+      "id": "applied-ai",
+      "name": "Applied AI for Community",
+      "description": "Hands-on project teams tackling real needs identified by local partners. Build things that matter.",
+      "icon": "wrench",
+      "duration": "10 weeks",
+      "hoursPerWeek": "5-7 hours/week"
+    },
+    {
+      "id": "data-science",
+      "name": "Data Science for Civic Impact",
+      "description": "Turn messy data into clear insights that drive community decisions.",
+      "icon": "chart",
+      "duration": "8 weeks",
+      "hoursPerWeek": "4-6 hours/week"
+    }
+  ],
+  "programs": [],
+  "faqs": [
+    {
+      "question": "Do I need coding experience?",
+      "answer": "No! AI Literacy requires zero coding. Applied AI and Data Science assume you're willing to learn - we provide resources and pair you with mentors."
+    },
+    {
+      "question": "Can I do more than one program?",
+      "answer": "Absolutely. Many students start with AI Literacy, then move to a project track. You can also repeat programs with new projects."
+    },
+    {
+      "question": "How do you pick project topics?",
+      "answer": "We partner with local nonprofits and city agencies to identify real needs. Students vote on which projects to tackle each cycle."
+    },
+    {
+      "question": "What if I miss sessions?",
+      "answer": "Life happens. Let your team lead know. We record workshops and provide async resources. Consistent communication is key."
+    }
+  ],
+  "callToAction": {
+    "title": "Interested in Our Programs?",
+    "description": "Sign up to be notified when applications open for our first cohort.",
+    "buttonText": "Get Notified",
+    "buttonLink": "/get-involved"
+  }
+}

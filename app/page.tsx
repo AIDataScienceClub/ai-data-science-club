@@ -3,51 +3,114 @@ import SectionHeader from '@/components/SectionHeader'
 import Card from '@/components/Card'
 import Testimonial from '@/components/Testimonial'
 import CTA from '@/components/CTA'
-import { Calendar } from 'lucide-react'
+import { Calendar, Clock, MapPin, Rocket } from 'lucide-react'
+import { readFile } from 'fs/promises'
+import path from 'path'
+import Link from 'next/link'
 
-export default function Home() {
+interface Event {
+  id: string
+  title: string
+  description: string
+  date: string
+  time?: string
+  location?: string
+}
+
+interface ImpactMetric {
+  metric: string
+  value: string
+  change: string
+  description: string
+}
+
+async function getHomeData() {
+  try {
+    const pagesPath = path.join(process.cwd(), 'data', 'pages.json')
+    const pagesContent = await readFile(pagesPath, 'utf-8')
+    const pagesData = JSON.parse(pagesContent)
+    return {
+      home: pagesData.home || null,
+      impact: pagesData.impact || null
+    }
+  } catch (error) {
+    console.error('Failed to load pages data:', error)
+    return { home: null, impact: null }
+  }
+}
+
+async function getEventsData() {
+  try {
+    const eventsPath = path.join(process.cwd(), 'data', 'events.json')
+    const eventsContent = await readFile(eventsPath, 'utf-8')
+    const eventsData = JSON.parse(eventsContent)
+    return eventsData.events || []
+  } catch (error) {
+    console.error('Failed to load events data:', error)
+    return []
+  }
+}
+
+async function getProgramsData() {
+  try {
+    const programsPath = path.join(process.cwd(), 'data', 'programs.json')
+    const programsContent = await readFile(programsPath, 'utf-8')
+    return JSON.parse(programsContent)
+  } catch (error) {
+    return null
+  }
+}
+
+async function getProjectsData() {
+  try {
+    const projectsPath = path.join(process.cwd(), 'data', 'projects.json')
+    const projectsContent = await readFile(projectsPath, 'utf-8')
+    return JSON.parse(projectsContent)
+  } catch (error) {
+    return null
+  }
+}
+
+export const revalidate = 0
+
+export default async function Home() {
+  const { home: pageData, impact: impactData } = await getHomeData()
+  const eventsData = await getEventsData()
+  const programsData = await getProgramsData()
+  const projectsData = await getProjectsData()
+  
+  // Get stats from Impact page if available, otherwise use home stats
+  const impactMetrics = impactData?.metrics || []
+  const studentsMetric = impactMetrics.find((m: ImpactMetric) => m.metric?.toLowerCase().includes('student'))
+  const projectsMetric = impactMetrics.find((m: ImpactMetric) => m.metric?.toLowerCase().includes('project'))
+  const partnersMetric = impactMetrics.find((m: ImpactMetric) => m.metric?.toLowerCase().includes('partner') || m.metric?.toLowerCase().includes('community'))
+  const confidenceMetric = impactMetrics.find((m: ImpactMetric) => m.metric?.toLowerCase().includes('stem') || m.metric?.toLowerCase().includes('confidence'))
+  
   const stats = [
-    { label: 'students trained this year', value: '147' },
-    { label: 'projects deployed', value: '21' },
-    { label: 'partner organizations', value: '8' },
-    { label: 'report increased confidence', value: '95%' },
+    { label: 'students trained this year', value: studentsMetric?.value || pageData?.stats?.[0]?.value || '147' },
+    { label: 'projects deployed', value: projectsMetric?.value || pageData?.stats?.[1]?.value || '21' },
+    { label: 'partner organizations', value: partnersMetric?.value || pageData?.stats?.[2]?.value || '8' },
+    { label: confidenceMetric?.description || 'report increased confidence', value: confidenceMetric?.value || '95%' },
   ]
+  
+  // Get upcoming events (first 3)
+  const upcomingEvents = eventsData.slice(0, 3)
 
-  const featuredProjects = [
-    {
-      title: 'Community Food Access Map',
-      summary: 'Interactive tool showing SNAP-accepting stores and food pantries across Atlanta\'s food deserts. Built in partnership with Atlanta Community Food Bank.',
-      tag: 'Community',
-      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop',
-      href: '/projects/community-food-access-map',
-    },
-    {
-      title: 'School Attendance Insights Dashboard',
-      summary: 'Data visualization helping counselors identify at-risk students earlier. Pilot program at 2 local high schools.',
-      tag: 'School Operations',
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop',
-      href: '/projects/attendance-dashboard',
-    },
-    {
-      title: 'Air Quality Monitor Network',
-      summary: 'Low-cost sensors deployed in 5 neighborhoods; real-time data shared with residents and city planners.',
-      tag: 'Environment',
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop',
-      href: '/projects/air-quality-monitors',
-    },
-  ]
-
-  const upcomingEvents = [
-    { date: 'Jan 18', title: 'AI Ethics Workshop', description: 'Learn to spot bias in algorithms' },
-    { date: 'Feb 1', title: 'Spring Sprint Kickoff', description: 'Join a 10-week project team' },
-    { date: 'Mar 15', title: 'Community Showcase', description: 'See our projects in action' },
-  ]
+  // Check if programs/projects are coming soon
+  const programsComingSoon = programsData?.comingSoon?.enabled && (!programsData?.programs || programsData.programs.length === 0)
+  const projectsComingSoon = projectsData?.comingSoon?.enabled && (!projectsData?.projects || projectsData.projects.length === 0)
+  
+  // Get program tracks for display
+  const programTracks = programsData?.tracks || []
+  
+  // Get project categories for display  
+  const projectCategories = projectsData?.categories || []
 
   return (
     <>
       <Hero
-        title="Learn AI. Build Solutions. Change Atlanta."
-        subtitle="We're a student-led club helping high schoolers learn and apply AI and data science to solve real problems in our community—responsibly."
+        title={pageData?.hero?.title || "Learn AI. Build Solutions. Change Atlanta."}
+        subtitle={pageData?.hero?.subtitle || "We're a student-led club helping high schoolers learn and apply AI and data science to solve real problems in our community—responsibly."}
         primaryCTA={{ label: 'Join Our Team', href: '/get-involved#students', ariaLabel: 'Apply to join as a student member' }}
         secondaryCTA={{ label: 'Explore Projects', href: '/projects', ariaLabel: 'View our project library' }}
       />
@@ -84,36 +147,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Projects */}
-      <section className="section-py bg-white">
-        <div className="container-custom">
-          <SectionHeader
-            title="Featured Projects"
-            description="Real problems. Real data. Real impact. See what our students have built."
-            align="center"
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProjects.map((project, index) => (
-              <Card
-                key={index}
-                image={project.image}
-                title={project.title}
-                summary={project.summary}
-                tag={project.tag}
-                href={project.href}
-              />
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <CTA label="View All Projects" href="/projects" variant="primary" />
-          </div>
-        </div>
-      </section>
-
       {/* Upcoming Events */}
-      <section className="section-py bg-neutral-gray-100">
+      <section className="section-py bg-white">
         <div className="container-custom">
           <SectionHeader
             title="Upcoming Events"
@@ -121,27 +156,117 @@ export default function Home() {
             align="center"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {upcomingEvents.map((event, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 shadow-card">
-                <div className="flex items-start mb-3">
-                  <Calendar className="w-5 h-5 text-primary mr-3 flex-shrink-0 mt-1" aria-hidden="true" />
-                  <div>
-                    <div className="font-bold text-primary mb-1">{event.date}</div>
-                    <h3 className="font-bold text-lg text-neutral-charcoal mb-2">
-                      {event.title}
-                    </h3>
-                    <p className="text-neutral-gray-700 text-sm">
-                      {event.description}
-                    </p>
+          {upcomingEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {upcomingEvents.map((event: Event, index: number) => (
+                <div key={event.id || index} className="bg-neutral-gray-100 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-lg bg-primary/10 text-primary flex flex-col items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-medium">{event.date?.split(' ')[0]}</span>
+                      <span className="text-lg font-bold">{event.date?.split(' ')[1]}</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg text-neutral-charcoal mb-1">
+                        {event.title}
+                      </h3>
+                      <p className="text-neutral-gray-600 text-sm mb-2">
+                        {event.description}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-neutral-gray-500">
+                        {event.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {event.time}</span>}
+                        {event.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {event.location}</span>}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-neutral-gray-100 rounded-xl max-w-2xl mx-auto">
+              <Calendar className="w-12 h-12 mx-auto text-primary/40 mb-4" />
+              <p className="text-neutral-gray-600">No upcoming events scheduled yet. Check back soon!</p>
+            </div>
+          )}
 
           <div className="text-center mt-8">
-            <CTA label="View Full Calendar" href="/events" variant="ghost" />
+            <CTA label="View Full Calendar" href="/events" variant="primary" />
+          </div>
+        </div>
+      </section>
+
+      {/* Programs Preview */}
+      <section className="section-py bg-neutral-gray-100">
+        <div className="container-custom">
+          <SectionHeader
+            title={programsComingSoon ? "Programs Coming Soon" : "Our Programs"}
+            description={programsComingSoon 
+              ? `Three learning pathways launching ${programsData?.comingSoon?.launchDate || 'soon'}!`
+              : "Three pathways designed for beginners, builders, and future AI leaders."
+            }
+            align="center"
+          />
+
+          {programTracks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {programTracks.map((track: any, index: number) => (
+                <div key={index} className="bg-white rounded-xl p-6 text-center hover:shadow-lg transition-shadow">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4 text-3xl">
+                    {track.icon === 'book' ? '📚' : track.icon === 'wrench' ? '🔧' : '📊'}
+                  </div>
+                  <h3 className="font-bold text-xl text-neutral-charcoal mb-2">{track.name}</h3>
+                  <p className="text-neutral-gray-600 mb-4 text-sm">{track.description}</p>
+                  <div className="text-xs text-neutral-gray-500">
+                    {track.duration} • {track.hoursPerWeek}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Rocket className="w-12 h-12 mx-auto text-primary/40 mb-4" />
+              <p className="text-neutral-gray-600">Program details coming soon!</p>
+            </div>
+          )}
+
+          <div className="text-center mt-12">
+            <CTA label={programsComingSoon ? "Get Notified" : "View All Programs"} href="/programs" variant="primary" />
+          </div>
+        </div>
+      </section>
+
+      {/* Projects Preview */}
+      <section className="section-py bg-white">
+        <div className="container-custom">
+          <SectionHeader
+            title={projectsComingSoon ? "Projects Coming Soon" : "Featured Projects"}
+            description={projectsComingSoon 
+              ? `Student-led projects launching ${projectsData?.comingSoon?.launchDate || 'soon'}!`
+              : "Real problems. Real data. Real impact. See what our students have built."
+            }
+            align="center"
+          />
+
+          {projectCategories.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {projectCategories.map((category: any, index: number) => (
+                <div key={index} className="bg-white rounded-xl p-6 text-center hover:shadow-lg transition-shadow">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4 text-2xl">
+                    {category.icon === 'users' ? '👥' : category.icon === 'book' ? '📖' : category.icon === 'leaf' ? '🌱' : '❤️'}
+                  </div>
+                  <h3 className="font-bold text-neutral-charcoal mb-2">{category.name}</h3>
+                  <p className="text-neutral-gray-600 text-sm">{category.description}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Rocket className="w-12 h-12 mx-auto text-primary/40 mb-4" />
+              <p className="text-neutral-gray-600">Project details coming soon!</p>
+            </div>
+          )}
+
+          <div className="text-center mt-12">
+            <CTA label={projectsComingSoon ? "Learn More" : "View All Projects"} href="/projects" variant="ghost" />
           </div>
         </div>
       </section>

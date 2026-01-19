@@ -10,12 +10,13 @@ export default function Header() {
 
   const navigation = [
     { name: 'Home', href: '/' },
+    { name: 'Events', href: '/events' },
+    { name: 'About', href: '/about' },
     { name: 'Programs', href: '/programs' },
     { name: 'Projects', href: '/projects' },
     { name: 'Impact', href: '/impact' },
-    { name: 'Events', href: '/events' },
     { name: 'Get Involved', href: '/get-involved' },
-    { name: 'About', href: '/about' },
+    { name: '✨ Admin', href: '/admin' },
   ]
 
   return (

@@ -1,14 +1,43 @@
 import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
+import { readFile } from 'fs/promises'
+import path from 'path'
+import Image from 'next/image'
+import { User } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'About | Atlanta AI & Data Lab',
   description: 'A student-led movement to make AI education accessible, impactful, and responsible.',
 }
 
-export default function About() {
-  const studentOfficers = [
+interface Officer {
+  name: string
+  role: string
+  grade: string
+  bio: string
+  focus: string
+  image?: string
+}
+
+async function getPageData() {
+  try {
+    const dataPath = path.join(process.cwd(), 'data', 'pages.json')
+    const fileContent = await readFile(dataPath, 'utf-8')
+    const data = JSON.parse(fileContent)
+    return data.about || null
+  } catch (error) {
+    console.error('Failed to load page data:', error)
+    return null
+  }
+}
+
+export const revalidate = 0
+
+export default async function About() {
+  const pageData = await getPageData()
+  
+  const studentOfficers = pageData?.team?.officers || [
     {
       name: 'Maya S.',
       role: 'Co-President',
@@ -38,33 +67,20 @@ export default function About() {
       focus: 'AI Literacy Facilitator | Leads bias audits for all projects',
     },
   ]
-
-  const advisors = [
-    {
-      name: 'Dr. Kim Rivera',
-      title: 'Lead Technical Advisor',
-      credentials: 'Computer Science Teacher, Northside High School | PhD in Machine Learning, Georgia Tech',
-      specialties: 'Python, NLP, responsible AI deployment',
-    },
-    {
-      name: 'Mr. Jamal Washington',
-      title: 'Community Partnerships Lead',
-      credentials: 'Former nonprofit director',
-      specialties: 'Project scoping, stakeholder engagement, youth leadership development',
-    },
-    {
-      name: 'Ms. Elena Martinez',
-      title: 'Ethics & Compliance Advisor',
-      credentials: 'Data privacy consultant',
-      specialties: 'Consent frameworks, anonymization, content moderation',
-    },
+  
+  const missionContent = pageData?.mission?.content || "Atlanta AI & Data Lab was founded in 2023 by three high school juniors frustrated by the lack of hands-on tech opportunities in their schools. They wanted more than lectures—they wanted to build things that mattered.\n\nToday, we're a nonprofit serving 147+ students across metro Atlanta, partnering with community organizations to turn classroom learning into real-world impact."
+  
+  const values = pageData?.mission?.values || [
+    { title: 'Accessible', description: 'No barriers—free programs, loaned equipment, beginner-friendly.' },
+    { title: 'Applied', description: 'Learning by doing; projects with purpose.' },
+    { title: 'Accountable', description: "Ethics aren't an afterthought—they're embedded in every project." }
   ]
 
   return (
     <>
       <Hero
-        title="Who We Are"
-        subtitle="A student-led movement to make AI education accessible, impactful, and responsible."
+        title={pageData?.hero?.title || "Who We Are"}
+        subtitle={pageData?.hero?.subtitle || "A student-led movement to make AI education accessible, impactful, and responsible."}
         primaryCTA={{ label: 'Contact Us', href: '#contact' }}
       />
 
@@ -76,22 +92,20 @@ export default function About() {
               Our Mission
             </h2>
             <p className="text-xl text-neutral-gray-700 mb-8 text-center">
-              "We help high schoolers learn and apply AI and data science to solve local problems—responsibly."
+              &quot;{pageData?.mission?.quote || "We help high schoolers learn and apply AI and data science to solve local problems—responsibly."}&quot;
             </p>
 
             <div className="prose prose-lg max-w-none text-neutral-gray-700">
-              <p className="mb-4">
-                Atlanta AI & Data Lab was founded in 2023 by three high school juniors frustrated by the lack of hands-on tech opportunities in their schools. They wanted more than lectures—they wanted to build things that mattered.
-              </p>
+              {missionContent.split('\n\n').map((paragraph: string, index: number) => (
+                <p key={index} className="mb-4">{paragraph}</p>
+              ))}
 
-              <p className="mb-4">
-                Today, we're a nonprofit serving 147+ students across metro Atlanta, partnering with community organizations to turn classroom learning into real-world impact. We believe technology education should be:
-              </p>
+              <p className="mb-4">We believe technology education should be:</p>
 
               <ul className="space-y-2 mb-6">
-                <li><strong>Accessible:</strong> No barriers—free programs, loaned equipment, beginner-friendly.</li>
-                <li><strong>Applied:</strong> Learning by doing; projects with purpose.</li>
-                <li><strong>Accountable:</strong> Ethics aren't an afterthought—they're embedded in every project.</li>
+                {values.map((value: { title: string; description: string }, index: number) => (
+                  <li key={index}><strong>{value.title}:</strong> {value.description}</li>
+                ))}
               </ul>
             </div>
           </div>
@@ -108,49 +122,37 @@ export default function About() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {studentOfficers.map((officer, index) => (
+            {studentOfficers.map((officer: Officer, index: number) => (
               <div key={index} className="bg-white rounded-lg p-6 shadow-card">
-                <h3 className="text-xl font-bold text-neutral-charcoal mb-1">
-                  {officer.name}
-                </h3>
-                <p className="text-primary font-medium mb-2">
-                  {officer.role} | {officer.grade}
-                </p>
-                <p className="text-sm text-neutral-gray-600 mb-3">
-                  {officer.focus}
-                </p>
-                <p className="text-neutral-gray-700 italic">
-                  {officer.bio}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Faculty Advisors */}
-      <section className="section-py bg-white">
-        <div className="container-custom">
-          <SectionHeader
-            title="Faculty Advisors"
-            description="Experienced educators and professionals guiding our work."
-            align="center"
-          />
-
-          <div className="space-y-6 max-w-4xl mx-auto">
-            {advisors.map((advisor, index) => (
-              <div key={index} className="bg-neutral-gray-100 rounded-lg p-6">
-                <h3 className="text-xl font-bold text-neutral-charcoal mb-1">
-                  {advisor.name}
-                </h3>
-                <p className="text-primary font-medium mb-2">
-                  {advisor.title}
-                </p>
-                <p className="text-sm text-neutral-gray-700 mb-2">
-                  {advisor.credentials}
-                </p>
-                <p className="text-sm text-neutral-gray-600">
-                  <strong>Specialties:</strong> {advisor.specialties}
+                <div className="flex gap-4 mb-4">
+                  {/* Profile Image */}
+                  <div className="flex-shrink-0">
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      {officer.image ? (
+                        <img 
+                          src={officer.image} 
+                          alt={officer.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-10 h-10 text-primary/50" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-neutral-charcoal mb-1">
+                      {officer.name}
+                    </h3>
+                    <p className="text-primary font-medium mb-1">
+                      {officer.role} | {officer.grade}
+                    </p>
+                    <p className="text-sm text-neutral-gray-600">
+                      {officer.focus}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-neutral-gray-700 italic border-l-4 border-primary/30 pl-4">
+                  &quot;{officer.bio}&quot;
                 </p>
               </div>
             ))}
@@ -159,7 +161,7 @@ export default function About() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="section-py bg-neutral-gray-100">
+      <section id="contact" className="section-py bg-white">
         <div className="container-custom">
           <SectionHeader
             title="Get in Touch"

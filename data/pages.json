@@ -1,0 +1,147 @@
+{
+  "about": {
+    "hero": {
+      "title": "Who We Are",
+      "subtitle": "A student-led movement to make AI education accessible, impactful, and responsible."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "quote": "We help high schoolers learn and apply AI and data science to solve local problems—responsibly.",
+      "content": "Atlanta AI & Data Lab was founded in 2023 by three high school juniors frustrated by the lack of hands-on tech opportunities in their schools. They wanted more than lectures—they wanted to build things that mattered.\n\nToday, we're a nonprofit serving 147+ students across metro Atlanta, partnering with community organizations to turn classroom learning into real-world impact.",
+      "values": [
+        { "title": "Accessible", "description": "No barriers—free programs, loaned equipment, beginner-friendly." },
+        { "title": "Applied", "description": "Learning by doing; projects with purpose." },
+        { "title": "Accountable", "description": "Ethics aren't an afterthought—they're embedded in every project." }
+      ]
+    },
+    "team": {
+      "officers": [
+        {
+          "name": "Maya S.",
+          "role": "Co-President",
+          "grade": "11th Grade",
+          "bio": "I joined because I wanted to see if I could actually code. Turns out, I can - and I love teaching others how.",
+          "focus": "Applied AI Track Lead | Built Community Food Access Map",
+          "image": null
+        },
+        {
+          "name": "Jordan T.",
+          "role": "Co-President",
+          "grade": "12th Grade",
+          "bio": "Good design means everyone can use it. I'm here to make sure we build for real people, not just tech bros.",
+          "focus": "UX & Accessibility Lead | Designed School Attendance Dashboard",
+          "image": null
+        },
+        {
+          "name": "Alex P.",
+          "role": "Data Science Director",
+          "grade": "11th Grade",
+          "bio": "Numbers tell stories. I want to make sure we're telling the right ones - and listening to who's left out.",
+          "focus": "Civic Data Track Lead | Led Youth Employment Survey Analysis",
+          "image": null
+        },
+        {
+          "name": "Priya N.",
+          "role": "Ethics & Safety Officer",
+          "grade": "10th Grade",
+          "bio": "If we're not asking 'who could this harm?' we're not doing our jobs.",
+          "focus": "AI Literacy Facilitator | Leads bias audits for all projects",
+          "image": null
+        }
+      ]
+    }
+  },
+  "impact": {
+    "hero": {
+      "title": "Measuring What Matters",
+      "subtitle": "We hold ourselves accountable. Here's how we track access, learning, and long-term pathways—and what we've achieved so far."
+    },
+    "metrics": [
+      { "metric": "Students Served", "value": "147", "change": "+32%", "description": "Active members this year" },
+      { "metric": "Title I Schools", "value": "68%", "change": "+12%", "description": "Students from underserved schools" },
+      { "metric": "Projects Completed", "value": "21", "change": "+40%", "description": "Community-facing projects" },
+      { "metric": "Community Users Reached", "value": "3,200+", "change": "+85%", "description": "People impacted by our tools" },
+      { "metric": "Pursuing STEM Majors", "value": "78%", "change": "+15%", "description": "Of graduating seniors" },
+      { "metric": "Scholarships Earned", "value": "$340K", "change": "+25%", "description": "Total awarded to members" }
+    ]
+  },
+  "programs": {
+    "hero": {
+      "title": "Programs That Meet You Where You Are",
+      "subtitle": "Three pathways designed for beginners, builders, and future AI leaders. No prior experience required."
+    },
+    "programs": [
+      {
+        "id": "ai-literacy",
+        "title": "AI Literacy",
+        "summary": "Short, interactive activities that demystify AI. Learn how algorithms make decisions, practice spotting bias, and discuss real-world implications.",
+        "details": [
+          "Hands-on exercises with visual AI tools (no coding required to start)",
+          "Ethics discussions: privacy, consent, fairness",
+          "Critical thinking workshops",
+          "Guest speakers from tech, policy, and advocacy"
+        ],
+        "commitment": "2 hours/week for 6 weeks",
+        "bestFor": "Students new to AI; curious about tech's role in society",
+        "outcomes": "Earn a digital badge; present one ethics case study"
+      },
+      {
+        "id": "applied-ai",
+        "title": "Applied AI for Community",
+        "summary": "Hands-on project teams tackling real needs identified by local partners. Learn Python, data analysis, and deployment—while building something that matters.",
+        "details": [
+          "Join a 10-week sprint team (4-6 students)",
+          "Partner with nonprofits, schools, or city departments",
+          "Build prototypes: maps, dashboards, recommendation tools",
+          "Public demo at Community Showcase"
+        ],
+        "commitment": "5-7 hours/week for 10 weeks",
+        "bestFor": "Students ready to code (or eager to learn fast)",
+        "outcomes": "Portfolio project; technical mentorship; college/internship references"
+      },
+      {
+        "id": "data-science",
+        "title": "Data Science for Civic Impact",
+        "summary": "Turn messy data into clear insights that drive community decisions. Learn surveys, data cleaning, visualization, and storytelling.",
+        "details": [
+          "Design surveys and collect data (with proper consent)",
+          "Clean and analyze datasets (Excel, Google Sheets, Python)",
+          "Build interactive dashboards (Tableau, Datawrapper)",
+          "Write policy briefs and present to partners"
+        ],
+        "commitment": "4-6 hours/week for 8 weeks",
+        "bestFor": "Students interested in research, journalism, policy, or public health",
+        "outcomes": "Published report; presentation to community board; data portfolio"
+      }
+    ],
+    "faqs": [
+      {
+        "question": "Do I need coding experience?",
+        "answer": "No! AI Literacy requires zero coding. Applied AI and Data Science assume you're willing to learn - we provide resources and pair you with mentors."
+      },
+      {
+        "question": "Can I do more than one program?",
+        "answer": "Absolutely. Many students start with AI Literacy, then move to a project track. You can also repeat programs with new projects."
+      },
+      {
+        "question": "How do you pick project topics?",
+        "answer": "We partner with local nonprofits and city agencies to identify real needs. Students vote on which projects to tackle each cycle."
+      },
+      {
+        "question": "What if I miss sessions?",
+        "answer": "Life happens. Let your team lead know. We record workshops and provide async resources. Consistent communication is key."
+      }
+    ]
+  },
+  "home": {
+    "hero": {
+      "title": "High schoolers learning AI—building for good.",
+      "subtitle": "We teach data science and responsible AI through hands-on projects that solve real community problems."
+    },
+    "stats": [
+      { "value": "147", "label": "Students Trained" },
+      { "value": "21", "label": "Projects Shipped" },
+      { "value": "12", "label": "Community Partners" }
+    ]
+  }
+}
