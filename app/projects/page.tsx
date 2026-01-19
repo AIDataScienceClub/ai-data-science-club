@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
-import { readFile } from 'fs/promises'
-import path from 'path'
 import { Sparkles, Users, BookOpen, Leaf, Heart, Lightbulb, Rocket, Clock, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { loadProjectsData } from '@/lib/data-loader'
 
 export const metadata: Metadata = {
   title: 'Projects | Atlanta AI & Data Lab',
@@ -48,21 +47,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   heart: Heart,
 }
 
-async function getProjectsData(): Promise<ProjectsData | null> {
-  try {
-    const dataPath = path.join(process.cwd(), 'data', 'projects.json')
-    const fileContent = await readFile(dataPath, 'utf-8')
-    return JSON.parse(fileContent)
-  } catch (error) {
-    console.error('Failed to load projects data:', error)
-    return null
-  }
-}
-
 export const revalidate = 0
 
 export default async function Projects() {
-  const data = await getProjectsData()
+  const data = await loadProjectsData() as ProjectsData | null
   
   const hero = data?.hero || { title: 'Projects That Matter', subtitle: 'Real problems. Real data. Real impact.' }
   const comingSoon = data?.comingSoon || { enabled: true, message: 'Projects coming soon!', launchDate: 'Spring 2026' }

@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
-import { readFile } from 'fs/promises'
-import path from 'path'
 import Image from 'next/image'
 import { User } from 'lucide-react'
+import { loadPagesData, PageData } from '@/lib/data-loader'
 
 export const metadata: Metadata = {
   title: 'About | Atlanta AI & Data Lab',
@@ -20,24 +19,13 @@ interface Officer {
   image?: string
 }
 
-async function getPageData() {
-  try {
-    const dataPath = path.join(process.cwd(), 'data', 'pages.json')
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const data = JSON.parse(fileContent)
-    return data.about || null
-  } catch (error) {
-    console.error('Failed to load page data:', error)
-    return null
-  }
-}
-
 export const revalidate = 0
 
 export default async function About() {
-  const pageData = await getPageData()
+  const pagesData = await loadPagesData()
+  const pageData: PageData | undefined = pagesData?.about
   
-  const studentOfficers = pageData?.team?.officers || [
+  const studentOfficers = (pageData?.team?.officers as Officer[]) || [
     {
       name: 'Maya S.',
       role: 'Co-President',

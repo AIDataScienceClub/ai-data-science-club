@@ -2,9 +2,8 @@ import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
 import { Calendar, Sparkles } from 'lucide-react'
-import { readFile } from 'fs/promises'
-import path from 'path'
 import Image from 'next/image'
+import { loadEventsData } from '@/lib/data-loader'
 
 export const metadata: Metadata = {
   title: 'Events | Atlanta AI & Data Lab',
@@ -35,22 +34,12 @@ interface GalleryItem {
   aiGenerated?: boolean
 }
 
-async function getEvents(): Promise<{ events: EventItem[], gallery: GalleryItem[] }> {
-  try {
-    const dataPath = path.join(process.cwd(), 'data', 'events.json')
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const data = JSON.parse(fileContent)
-    return { events: data.events || [], gallery: data.gallery || [] }
-  } catch (error) {
-    console.error('Failed to load events:', error)
-    return { events: [], gallery: [] }
-  }
-}
-
 export const revalidate = 0 // Always fetch fresh data
 
 export default async function Events() {
-  const { events, gallery } = await getEvents()
+  const data = await loadEventsData()
+  const events = (data?.events || []) as EventItem[]
+  const gallery = (data?.gallery || []) as GalleryItem[]
   
   // Sort by date, featured first
   const sortedEvents = events.sort((a, b) => {

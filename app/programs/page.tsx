@@ -2,9 +2,8 @@ import type { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import SectionHeader from '@/components/SectionHeader'
 import { BookOpen, Wrench, BarChart, Rocket, Clock, Users, GraduationCap, Lightbulb } from 'lucide-react'
-import { readFile } from 'fs/promises'
-import path from 'path'
 import Link from 'next/link'
+import { loadProgramsData } from '@/lib/data-loader'
 
 export const metadata: Metadata = {
   title: 'Programs | Atlanta AI & Data Lab',
@@ -53,21 +52,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   chart: BarChart,
 }
 
-async function getProgramsData(): Promise<ProgramsData | null> {
-  try {
-    const dataPath = path.join(process.cwd(), 'data', 'programs.json')
-    const fileContent = await readFile(dataPath, 'utf-8')
-    return JSON.parse(fileContent)
-  } catch (error) {
-    console.error('Failed to load programs data:', error)
-    return null
-  }
-}
-
 export const revalidate = 0
 
 export default async function Programs() {
-  const data = await getProgramsData()
+  const data = await loadProgramsData() as ProgramsData | null
   
   const hero = data?.hero || { title: 'Programs That Meet You Where You Are', subtitle: 'Three pathways for beginners, builders, and future AI leaders.' }
   const comingSoon = data?.comingSoon || { enabled: true, message: 'Programs coming soon!', launchDate: 'Spring 2026' }

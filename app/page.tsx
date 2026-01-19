@@ -4,18 +4,8 @@ import Card from '@/components/Card'
 import Testimonial from '@/components/Testimonial'
 import CTA from '@/components/CTA'
 import { Calendar, Clock, MapPin, Rocket } from 'lucide-react'
-import { readFile } from 'fs/promises'
-import path from 'path'
 import Link from 'next/link'
-
-interface Event {
-  id: string
-  title: string
-  description: string
-  date: string
-  time?: string
-  location?: string
-}
+import { loadPagesData, loadEventsData, loadProgramsData, loadProjectsData, EventItem, ProgramsData, ProjectsData } from '@/lib/data-loader'
 
 interface ImpactMetric {
   metric: string
@@ -24,60 +14,16 @@ interface ImpactMetric {
   description: string
 }
 
-async function getHomeData() {
-  try {
-    const pagesPath = path.join(process.cwd(), 'data', 'pages.json')
-    const pagesContent = await readFile(pagesPath, 'utf-8')
-    const pagesData = JSON.parse(pagesContent)
-    return {
-      home: pagesData.home || null,
-      impact: pagesData.impact || null
-    }
-  } catch (error) {
-    console.error('Failed to load pages data:', error)
-    return { home: null, impact: null }
-  }
-}
-
-async function getEventsData() {
-  try {
-    const eventsPath = path.join(process.cwd(), 'data', 'events.json')
-    const eventsContent = await readFile(eventsPath, 'utf-8')
-    const eventsData = JSON.parse(eventsContent)
-    return eventsData.events || []
-  } catch (error) {
-    console.error('Failed to load events data:', error)
-    return []
-  }
-}
-
-async function getProgramsData() {
-  try {
-    const programsPath = path.join(process.cwd(), 'data', 'programs.json')
-    const programsContent = await readFile(programsPath, 'utf-8')
-    return JSON.parse(programsContent)
-  } catch (error) {
-    return null
-  }
-}
-
-async function getProjectsData() {
-  try {
-    const projectsPath = path.join(process.cwd(), 'data', 'projects.json')
-    const projectsContent = await readFile(projectsPath, 'utf-8')
-    return JSON.parse(projectsContent)
-  } catch (error) {
-    return null
-  }
-}
-
 export const revalidate = 0
 
 export default async function Home() {
-  const { home: pageData, impact: impactData } = await getHomeData()
-  const eventsData = await getEventsData()
-  const programsData = await getProgramsData()
-  const projectsData = await getProjectsData()
+  const pagesData = await loadPagesData()
+  const pageData = pagesData?.home
+  const impactData = pagesData?.impact
+  const eventsDataRaw = await loadEventsData()
+  const eventsData = eventsDataRaw?.events || []
+  const programsData = await loadProgramsData()
+  const projectsData = await loadProjectsData()
   
   // Get stats from Impact page if available, otherwise use home stats
   const impactMetrics = impactData?.metrics || []
@@ -158,7 +104,7 @@ export default async function Home() {
 
           {upcomingEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {upcomingEvents.map((event: Event, index: number) => (
+              {upcomingEvents.map((event: EventItem, index: number) => (
                 <div key={event.id || index} className="bg-neutral-gray-100 rounded-lg p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 rounded-lg bg-primary/10 text-primary flex flex-col items-center justify-center flex-shrink-0">
