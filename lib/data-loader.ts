@@ -73,12 +73,20 @@ export interface PageData {
   mission?: { 
     title?: string; 
     quote?: string; 
-    content?: string; 
+    content?: string;
+    description?: string;
     values?: Array<{ title: string; description: string }> 
   }
   team?: { officers?: Array<{ name: string; role: string; grade: string; bio: string; focus: string; image?: string }> }
   stats?: Array<{ value: string; label: string }>
   metrics?: Array<{ metric: string; value: string; change: string; description: string }>
+  testimonials?: Array<{ quote: string; author: string; role: string }>
+  callToAction?: {
+    title?: string
+    description?: string
+    primaryButton?: { label?: string; href?: string }
+    secondaryButton?: { label?: string; href?: string }
+  }
   [key: string]: unknown
 }
 
