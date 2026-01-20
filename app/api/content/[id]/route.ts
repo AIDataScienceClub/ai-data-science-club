@@ -85,7 +85,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   // Check authentication
-  if (!isAuthenticated(request)) {
+  if (!(await isAuthenticated())) {
     return unauthorizedResponse()
   }
   
@@ -134,7 +134,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   // Check authentication
-  if (!isAuthenticated(request)) {
+  if (!(await isAuthenticated())) {
     return unauthorizedResponse()
   }
   
