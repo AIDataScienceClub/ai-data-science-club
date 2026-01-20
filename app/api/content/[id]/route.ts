@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile, writeFile } from 'fs/promises'
 import path from 'path'
+import { isAuthenticated, unauthorizedResponse } from '@/lib/auth'
+import { saveDataToBlob, loadDataFromBlob, isVercelEnvironment } from '@/lib/blob-storage'
 
 interface ContentItem {
   id: string
@@ -18,15 +20,48 @@ interface ContentItem {
   aiGenerated: boolean
 }
 
+interface EventsData {
+  events: ContentItem[]
+  gallery: ContentItem[]
+}
+
+const DATA_FILENAME = 'events.json'
+
+// Helper to read events data
+async function readEventsData(): Promise<EventsData> {
+  const defaultData: EventsData = { events: [], gallery: [] }
+  
+  if (isVercelEnvironment()) {
+    const blobData = await loadDataFromBlob<EventsData>(DATA_FILENAME)
+    if (blobData) return blobData
+  }
+  
+  try {
+    const dataPath = path.join(process.cwd(), 'data', 'events.json')
+    const fileContent = await readFile(dataPath, 'utf-8')
+    return JSON.parse(fileContent)
+  } catch {
+    return defaultData
+  }
+}
+
+// Helper to write events data
+async function writeEventsData(data: EventsData): Promise<void> {
+  if (isVercelEnvironment()) {
+    await saveDataToBlob(DATA_FILENAME, data)
+  } else {
+    const dataPath = path.join(process.cwd(), 'data', 'events.json')
+    await writeFile(dataPath, JSON.stringify(data, null, 2))
+  }
+}
+
 // GET - fetch a single item
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const dataPath = path.join(process.cwd(), 'data', 'events.json')
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const data = JSON.parse(fileContent)
+    const data = await readEventsData()
     
     // Search in both events and gallery
     const item = [...data.events, ...data.gallery].find(
@@ -39,6 +74,7 @@ export async function GET(
     
     return NextResponse.json(item)
   } catch (error) {
+    console.error('GET error:', error)
     return NextResponse.json({ error: 'Failed to fetch item' }, { status: 500 })
   }
 }
@@ -48,11 +84,14 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Check authentication
+  if (!isAuthenticated(request)) {
+    return unauthorizedResponse()
+  }
+  
   try {
     const updates = await request.json()
-    const dataPath = path.join(process.cwd(), 'data', 'events.json')
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const data = JSON.parse(fileContent)
+    const data = await readEventsData()
     
     // Find and update in events
     let found = false
@@ -80,7 +119,7 @@ export async function PUT(
     }
     
     // Save updated data
-    await writeFile(dataPath, JSON.stringify(data, null, 2))
+    await writeEventsData(data)
     
     return NextResponse.json({ success: true, message: 'Item updated' })
   } catch (error) {
@@ -94,10 +133,13 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Check authentication
+  if (!isAuthenticated(request)) {
+    return unauthorizedResponse()
+  }
+  
   try {
-    const dataPath = path.join(process.cwd(), 'data', 'events.json')
-    const fileContent = await readFile(dataPath, 'utf-8')
-    const data = JSON.parse(fileContent)
+    const data = await readEventsData()
     
     const eventsLength = data.events.length
     const galleryLength = data.gallery.length
@@ -109,10 +151,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 })
     }
     
-    await writeFile(dataPath, JSON.stringify(data, null, 2))
+    await writeEventsData(data)
     
     return NextResponse.json({ success: true, message: 'Item deleted' })
   } catch (error) {
+    console.error('Delete error:', error)
     return NextResponse.json({ error: 'Failed to delete item' }, { status: 500 })
   }
 }
