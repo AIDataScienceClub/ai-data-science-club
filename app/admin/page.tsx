@@ -1263,7 +1263,7 @@ export default function AdminPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Mission Quote</label>
                             <input
                               type="text"
-                              value={pageEditData.mission.quote}
+                              value={pageEditData.mission.quote || ''}
                               onChange={(e) => updatePageField(['mission', 'quote'], e.target.value)}
                               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                             />
@@ -1271,7 +1271,7 @@ export default function AdminPage() {
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
                             <textarea
-                              value={pageEditData.mission.content}
+                              value={pageEditData.mission.content || ''}
                               onChange={(e) => updatePageField(['mission', 'content'], e.target.value)}
                               rows={4}
                               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
@@ -1280,13 +1280,13 @@ export default function AdminPage() {
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Values</label>
                             <div className="space-y-3">
-                              {pageEditData.mission.values.map((value: ValueItem, index: number) => (
+                              {(pageEditData.mission.values || []).map((value: ValueItem, index: number) => (
                                 <div key={index} className="flex gap-2">
                                   <input
                                     type="text"
                                     value={value.title}
                                     onChange={(e) => {
-                                      const newValues = [...pageEditData.mission.values]
+                                      const newValues = [...(pageEditData.mission.values || [])]
                                       newValues[index] = { ...value, title: e.target.value }
                                       updatePageField(['mission', 'values'], newValues)
                                     }}
@@ -1297,7 +1297,7 @@ export default function AdminPage() {
                                     type="text"
                                     value={value.description}
                                     onChange={(e) => {
-                                      const newValues = [...pageEditData.mission.values]
+                                      const newValues = [...(pageEditData.mission.values || [])]
                                       newValues[index] = { ...value, description: e.target.value }
                                       updatePageField(['mission', 'values'], newValues)
                                     }}
@@ -1334,7 +1334,7 @@ export default function AdminPage() {
                                   focus: '',
                                   image: null
                                 }
-                                const newOfficers = [...pageEditData.team.officers, newOfficer]
+                                const newOfficers = [...(pageEditData.team.officers || []), newOfficer]
                                 updatePageField(['team', 'officers'], newOfficers)
                               }}
                               className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded-lg text-sm hover:bg-primary-dark transition-colors"
@@ -1344,12 +1344,12 @@ export default function AdminPage() {
                             </button>
                           </div>
                           <div className="space-y-4">
-                            {pageEditData.team.officers.map((officer: TeamMember, index: number) => (
+                            {(pageEditData.team.officers || []).map((officer: TeamMember, index: number) => (
                               <div key={index} className="bg-white rounded-lg p-4 border space-y-3 relative">
                                 {/* Remove Button */}
                                 <button
                                   onClick={() => {
-                                    const newOfficers = pageEditData.team.officers.filter((_: TeamMember, i: number) => i !== index)
+                                    const newOfficers = (pageEditData.team.officers || []).filter((_: TeamMember, i: number) => i !== index)
                                     updatePageField(['team', 'officers'], newOfficers)
                                   }}
                                   className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -1386,7 +1386,7 @@ export default function AdminPage() {
                                               const res = await fetch('/api/team-image', { method: 'POST', credentials: 'include', body: formData })
                                               const data = await res.json()
                                               if (data.imagePath) {
-                                                const newOfficers = [...pageEditData.team.officers]
+                                                const newOfficers = [...(pageEditData.team.officers || [])]
                                                 newOfficers[index] = { ...officer, image: data.imagePath }
                                                 updatePageField(['team', 'officers'], newOfficers)
                                               }
@@ -1403,7 +1403,7 @@ export default function AdminPage() {
                                         type="text"
                                         value={officer.name}
                                         onChange={(e) => {
-                                          const newOfficers = [...pageEditData.team.officers]
+                                          const newOfficers = [...(pageEditData.team.officers || [])]
                                           newOfficers[index] = { ...officer, name: e.target.value }
                                           updatePageField(['team', 'officers'], newOfficers)
                                         }}
@@ -1414,7 +1414,7 @@ export default function AdminPage() {
                                         type="text"
                                         value={officer.role || ''}
                                         onChange={(e) => {
-                                          const newOfficers = [...pageEditData.team.officers]
+                                          const newOfficers = [...(pageEditData.team.officers || [])]
                                           newOfficers[index] = { ...officer, role: e.target.value }
                                           updatePageField(['team', 'officers'], newOfficers)
                                         }}
@@ -1425,7 +1425,7 @@ export default function AdminPage() {
                                         type="text"
                                         value={officer.grade || ''}
                                         onChange={(e) => {
-                                          const newOfficers = [...pageEditData.team.officers]
+                                          const newOfficers = [...(pageEditData.team.officers || [])]
                                           newOfficers[index] = { ...officer, grade: e.target.value }
                                           updatePageField(['team', 'officers'], newOfficers)
                                         }}
@@ -1437,7 +1437,7 @@ export default function AdminPage() {
                                       type="text"
                                       value={officer.focus || ''}
                                       onChange={(e) => {
-                                        const newOfficers = [...pageEditData.team.officers]
+                                        const newOfficers = [...(pageEditData.team.officers || [])]
                                         newOfficers[index] = { ...officer, focus: e.target.value }
                                         updatePageField(['team', 'officers'], newOfficers)
                                       }}
@@ -1450,7 +1450,7 @@ export default function AdminPage() {
                                   type="text"
                                   value={officer.bio || ''}
                                   onChange={(e) => {
-                                    const newOfficers = [...pageEditData.team.officers]
+                                    const newOfficers = [...(pageEditData.team.officers || [])]
                                     newOfficers[index] = { ...officer, bio: e.target.value }
                                     updatePageField(['team', 'officers'], newOfficers)
                                   }}
